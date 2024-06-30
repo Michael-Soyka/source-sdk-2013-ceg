@@ -190,11 +190,11 @@ extern const int32 ALIGN16 g_SIMD_SkipTailMask[4][4] ALIGN16_POST;
 // intervals between x86 and PPC, for example, and that is
 // a higher level code change. 
 // On the other hand, I'm tired of typing #ifdef _X360
-// all over the place, so this is just a nop on Intel, PS3.
+// all over the place, so this is just a nop on Intel.
 #ifdef _X360
-#define PREFETCH360(address, offset) __dcbt(offset,address)
+	#define PREFETCH360(address, offset) __dcbt(offset,address)
 #else
-#define PREFETCH360(x,y) // nothing
+	#define PREFETCH360(x,y) // nothing
 #endif
 
 #if USE_STDC_FOR_SIMD

@@ -29,10 +29,6 @@
 #include "isteamapplist.h"
 #include "isteamhtmlsurface.h"
 
-#if defined( _PS3 )
-#include "steamps3params.h"
-#endif
-
 // Steam API export macro
 #if defined( _WIN32 ) && !defined( _X360 )
 	#if defined( STEAM_API_EXPORTS )
@@ -101,14 +97,10 @@ S_API ISteamClient *S_CALLTYPE SteamClient();
 // functions below to get at the Steam interfaces.
 //
 #ifdef VERSION_SAFE_STEAM_API_INTERFACES
-S_API bool S_CALLTYPE SteamAPI_InitSafe();
+	S_API bool S_CALLTYPE SteamAPI_InitSafe();
 #else
 
-#if defined(_PS3)
-S_API bool S_CALLTYPE SteamAPI_Init( SteamPS3Params_t *pParams );
-#else
 S_API bool S_CALLTYPE SteamAPI_Init();
-#endif
 
 S_API ISteamUser *S_CALLTYPE SteamUser();
 S_API ISteamFriends *S_CALLTYPE SteamFriends();
@@ -128,9 +120,6 @@ S_API ISteamAppList *S_CALLTYPE SteamAppList();
 S_API ISteamMusic *S_CALLTYPE SteamMusic();
 S_API ISteamMusicRemote *S_CALLTYPE SteamMusicRemote();
 S_API ISteamHTMLSurface *S_CALLTYPE SteamHTMLSurface();
-#ifdef _PS3
-S_API ISteamPS3OverlayRender *S_CALLTYPE SteamPS3OverlayRender();
-#endif
 #endif // VERSION_SAFE_STEAM_API_INTERFACES
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------//
@@ -414,9 +403,6 @@ public:
 	ISteamMusic*		SteamMusic()						{ return m_pSteamMusic; }
 	ISteamMusicRemote*	SteamMusicRemote()					{ return m_pSteamMusicRemote; }
 	ISteamHTMLSurface*	SteamHTMLSurface()					{ return m_pSteamHTMLSurface; }
-#ifdef _PS3
-	ISteamPS3OverlayRender* SteamPS3OverlayRender()		{ return m_pSteamPS3OverlayRender; }
-#endif
 
 private:
 	ISteamUser		*m_pSteamUser;
@@ -437,9 +423,6 @@ private:
 	ISteamMusic			*m_pSteamMusic;
 	ISteamMusicRemote	*m_pSteamMusicRemote;
 	ISteamHTMLSurface	*m_pSteamHTMLSurface;
-#ifdef _PS3
-	ISteamPS3OverlayRender *m_pSteamPS3OverlayRender;
-#endif
 };
 
 inline CSteamAPIContext::CSteamAPIContext()
@@ -468,9 +451,6 @@ inline void CSteamAPIContext::Clear()
 	m_pSteamMusic = NULL;
 	m_pSteamMusicRemote= NULL;
 	m_pSteamHTMLSurface = NULL;
-#ifdef _PS3
-	m_pSteamPS3OverlayRender = NULL;
-#endif
 }
 
 // This function must be inlined so the module using steam_api.dll gets the version names they want.
@@ -559,10 +539,6 @@ inline bool CSteamAPIContext::Init()
 	{
 		return false;
 	}
-
-#ifdef _PS3
-	m_pSteamPS3OverlayRender = SteamClient()->GetISteamPS3OverlayRender();
-#endif
 
 	return true;
 }
