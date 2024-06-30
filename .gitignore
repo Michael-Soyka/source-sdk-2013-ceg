@@ -64,6 +64,7 @@ client.dylib.dSYM/
 server.dylib
 server.dylib.dSYM/
 
+fgdlib.lib
 mathlib.lib
 raytrace.lib
 tier1.lib

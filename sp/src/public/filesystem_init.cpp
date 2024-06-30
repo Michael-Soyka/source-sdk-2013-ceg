@@ -913,12 +913,6 @@ bool DoesPathExistAlready( const char *pPathEnvVar, const char *pTestPath )
 
 FSReturnCode_t SetSteamInstallPath( char *steamInstallPath, int steamInstallPathLen, CSteamEnvVars &steamEnvVars, bool bErrorsAsWarnings )
 {
-	if ( IsConsole() )
-	{
-		// consoles don't use steam
-		return FS_MISSING_STEAM_DLL;
-	}
-
 	if ( IsPosix() )
 		return FS_OK; // under posix the content does not live with steam.dll up the path, rely on the environment already being set by steam
 	
