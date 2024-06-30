@@ -6,7 +6,7 @@
 //=============================================================================//
 
 #ifndef BASETYPES_H
-#define BASETYPES_H
+	#define BASETYPES_H
 
 #include "commonmacros.h"
 #include "wchartypes.h"
@@ -14,37 +14,23 @@
 #include "tier0/valve_off.h"
 
 #ifdef _WIN32
-#pragma once
+	#pragma once
 #endif
-
 
 // This is a trick to get the DLL extension off the -D option on the command line.
 #define DLLExtTokenPaste(x) #x
 #define DLLExtTokenPaste2(x) DLLExtTokenPaste(x)
 #define DLL_EXT_STRING DLLExtTokenPaste2( _DLL_EXT )
 
-
 #include "protected_things.h"
-
-// There's a different version of this file in the xbox codeline
-// so the PC version built in the xbox branch includes things like 
-// tickrate changes.
-#include "xbox_codeline_defines.h"
-
-#ifdef IN_XBOX_CODELINE
-#define XBOX_CODELINE_ONLY()
-#else
-#define XBOX_CODELINE_ONLY() Error_Compiling_Code_Only_Valid_in_Xbox_Codeline
-#endif
 
 // stdio.h
 #ifndef NULL
 #define NULL 0
 #endif
 
-
 #ifdef POSIX
-#include <stdint.h>
+	#include <stdint.h>
 #endif
 
 #define ExecuteNTimes( nTimes, x )	\
@@ -59,7 +45,6 @@
 
 
 #define ExecuteOnce( x )			ExecuteNTimes( 1, x )
-
 
 template <typename T>
 inline T AlignValue( T val, uintptr_t alignment )

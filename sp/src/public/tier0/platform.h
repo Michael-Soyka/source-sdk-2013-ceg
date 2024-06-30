@@ -15,15 +15,6 @@
 	// for the 360, the ppc platform and the rtos are tightly coupled
 	// setup the 360 environment here !once! for much less leaf module include wackiness
 	// these are critical order and purposely appear *before* anything else
-	#define _XBOX
-		#include <xtl.h>
-		#include <xaudio2.h>
-		#include <xbdm.h>
-		#include <Xgraphics.h>
-		#include <xui.h>
-		#include <pmcpbsetup.h>
-		#include <XMAHardwareAbstraction.h>
-	#undef _XBOX
 #endif
 
 #include "wchartypes.h"

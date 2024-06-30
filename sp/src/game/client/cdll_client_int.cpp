@@ -920,10 +920,8 @@ int CHLClient::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physi
 		return false;
 	if ( (scenefilecache = (ISceneFileCache *)appSystemFactory( SCENE_FILE_CACHE_INTERFACE_VERSION, NULL )) == NULL )
 		return false;
-#ifndef _XBOX
 	if ( ( gamestatsuploader = (IUploadGameStats *)appSystemFactory( INTERFACEVERSION_UPLOADGAMESTATS, NULL )) == NULL )
 		return false;
-#endif
 
 #if defined( REPLAY_ENABLED )
 	if ( (g_pEngineReplay = (IEngineReplay *)appSystemFactory( ENGINE_REPLAY_INTERFACE_VERSION, NULL )) == NULL )
@@ -1717,10 +1715,6 @@ void CHLClient::LevelShutdown( void )
 	g_pParticleSystemMgr->UncacheAllParticleSystems();
 #endif
 	UncacheAllMaterials();
-
-#ifdef _XBOX
-	ReleaseRenderTargets();
-#endif
 
 	// string tables are cleared on disconnect from a server, so reset our global pointers to NULL
 	ResetStringTablePointers();

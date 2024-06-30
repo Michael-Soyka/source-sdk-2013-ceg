@@ -1,14 +1,8 @@
 //========= Copyright Valve Corporation, All rights reserved. ============//
-#ifndef _XBOX
-//#include <windows.h>
-#endif
 #include "cbase.h"
 #include "convar.h"
 
-
-
 #ifdef SIXENSE
-
 #include "in_buttons.h"
 #include "sixense/in_sixense.h"
 #include "sixense/sixense_convars_extern.h"
