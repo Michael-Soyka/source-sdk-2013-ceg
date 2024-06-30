@@ -47,7 +47,7 @@ enum
 {
 	AUTOAIM_NONE = 0,		// No autoaim at all.
 	AUTOAIM_ON,				// Autoaim is on.
-	AUTOAIM_ON_CONSOLE,		// Autoaim is on, including enhanced features for Console gaming (more assistance, etc)
+	//AUTOAIM_ON_CONSOLE,		// Autoaim is on, including enhanced features for Console gaming (more assistance, etc)
 };
 
 // weapon respawning return codes

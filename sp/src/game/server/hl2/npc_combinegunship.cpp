@@ -624,11 +624,12 @@ void CNPC_CombineGunship::Spawn( void )
 		CreateBellyBlastEnergyCore();
 	}
 
-	// Allows autoaim to help attack the gunship.
-	if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
-	{
-		AddFlag( FL_AIMTARGET );
-	}
+	//TODO: Adapt console auto-aim for PC
+	//// Allows autoaim to help attack the gunship.
+	//if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
+	//{
+	//	AddFlag( FL_AIMTARGET );
+	//}
 }
 
 //-----------------------------------------------------------------------------

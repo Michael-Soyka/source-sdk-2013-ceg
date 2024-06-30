@@ -159,10 +159,11 @@ void CPropAPC::Spawn( void )
 
 	CreateAPCLaserDot();
 
-	if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
-	{
-		AddFlag( FL_AIMTARGET );
-	}
+	//TODO: Adapt console auto-aim for PC
+	//if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
+	//{
+	//	AddFlag( FL_AIMTARGET );
+	//}
 }
 
 //-----------------------------------------------------------------------------
@@ -181,10 +182,11 @@ void CPropAPC::CreateAPCLaserDot( void )
 //-----------------------------------------------------------------------------
 bool CPropAPC::ShouldAttractAutoAim( CBaseEntity *pAimingEnt )
 {
-	if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE && pAimingEnt->IsPlayer() && GetDriver() )
-	{
-		return true;
-	}
+	//TODO: Adapt console auto-aim for PC
+	//if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE && pAimingEnt->IsPlayer() && GetDriver() )
+	//{
+	//	return true;
+	//}
 
 	return BaseClass::ShouldAttractAutoAim( pAimingEnt );
 }
@@ -277,10 +279,11 @@ Vector CPropAPC::EyePosition( )
 //-----------------------------------------------------------------------------
 Vector CPropAPC::BodyTarget( const Vector &posSrc, bool bNoisy ) 
 {
-	if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
-	{
-		return WorldSpaceCenter();
-	}
+	//TODO: Adapt console auto-aim for PC
+	//if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
+	//{
+	//	return WorldSpaceCenter();
+	//}
 
 	return BaseClass::BodyTarget( posSrc, bNoisy );
 }

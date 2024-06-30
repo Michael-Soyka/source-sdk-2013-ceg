@@ -1052,21 +1052,22 @@ void CPropAirboat::ComputeAimPoint( Vector *pVecAimPoint )
 {
 	Vector vecEyeDirection;
 
-	if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
-	{
-		// Use autoaim as the eye dir.
-		autoaim_params_t params;
+	//TODO: Adapt console auto-aim for PC
+	//if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
+	//{
+	//	// Use autoaim as the eye dir.
+	//	autoaim_params_t params;
 
-		params.m_fScale = AUTOAIM_SCALE_DEFAULT * sv_vehicle_autoaim_scale.GetFloat();
-		params.m_fMaxDist = autoaim_max_dist.GetFloat();
-		m_hPlayer->GetAutoaimVector( params );
+	//	params.m_fScale = AUTOAIM_SCALE_DEFAULT * sv_vehicle_autoaim_scale.GetFloat();
+	//	params.m_fMaxDist = autoaim_max_dist.GetFloat();
+	//	m_hPlayer->GetAutoaimVector( params );
 
-		vecEyeDirection = params.m_vecAutoAimDir;
-	}
-	else
-	{
-		m_hPlayer->EyeVectors( &vecEyeDirection, NULL, NULL );
-	}
+	//	vecEyeDirection = params.m_vecAutoAimDir;
+	//}
+	//else
+	//{
+	m_hPlayer->EyeVectors( &vecEyeDirection, NULL, NULL );
+	//}
 
 	Vector vecEndPos;
 	VectorMA( m_hPlayer->EyePosition(), MAX_TRACE_LENGTH, vecEyeDirection, vecEndPos );
