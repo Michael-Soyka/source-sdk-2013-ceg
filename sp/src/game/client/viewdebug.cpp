@@ -531,9 +531,6 @@ void CDebugViewRender::Draw3DDebuggingInfo( const CViewSetup &view )
 //-----------------------------------------------------------------------------
 void CDebugViewRender::Draw2DDebuggingInfo( const CViewSetup &view )
 {
-	if ( IsX360() && IsRetail() )
-		return;
-
 	// HDRFIXME: Assert NULL rendertarget
 	if ( mat_yuv.GetInt() && (engine->GetDXSupportLevel() >= 80) )
 	{
@@ -658,9 +655,6 @@ CON_COMMAND_F( r_screenoverlay, "Draw specified material as an overlay", FCVAR_C
 // Used to verify frame syncing.
 void CDebugViewRender::GenerateOverdrawForTesting()
 {
-	if ( IsX360() )
-		return;
-
 	if ( !cl_overdraw_test.GetInt() )
 		return;
 
@@ -669,6 +663,7 @@ void CDebugViewRender::GenerateOverdrawForTesting()
 		g_SmokeFogOverlayAlpha = 20 / 255.0;
 		DrawSmokeFogOverlay();
 	}
+
 	g_SmokeFogOverlayAlpha = 0;
 }
 

@@ -6631,14 +6631,6 @@ bool CBasePlayer::BumpWeapon( CBaseCombatWeapon *pWeapon )
 		else
 		{
 #ifdef HL2_DLL
-
-			if ( IsX360() )
-			{
-				CFmtStr hint;
-				hint.sprintf( "#valve_hint_select_%s", pWeapon->GetClassname() );
-				UTIL_HudHintText( this, hint.Access() );
-			}
-
 			// Always switch to a newly-picked up weapon
 			if ( !PlayerHasMegaPhysCannon() )
 			{
@@ -6901,7 +6893,7 @@ bool CBasePlayer::ShouldAutoaim( void )
 		return false;
 
 	// autoaiming is only for easy and medium skill
-	return ( IsX360() || !g_pGameRules->IsSkillLevel(SKILL_HARD) );
+	return ( !g_pGameRules->IsSkillLevel( SKILL_HARD ) );
 }
 
 //-----------------------------------------------------------------------------

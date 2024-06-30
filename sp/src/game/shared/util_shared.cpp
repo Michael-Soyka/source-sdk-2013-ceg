@@ -1134,19 +1134,16 @@ void UTIL_CalculateHolidays()
 
 bool UTIL_IsHolidayActive( /*EHoliday*/ int eHoliday )
 {
-#ifdef USES_ECON_ITEMS
-	if ( IsX360() )
+	#ifdef USES_ECON_ITEMS
+		if ( !s_HolidaysCalculated )
+		{
+			UTIL_CalculateHolidays();
+		}
+
+		return s_HolidaysActive.IsBitSet( eHoliday );
+	#else
 		return false;
-
-	if ( !s_HolidaysCalculated )
-	{
-		UTIL_CalculateHolidays();
-	}
-
-	return s_HolidaysActive.IsBitSet( eHoliday );
-#else
-	return false;
-#endif
+	#endif
 }
 
 //-----------------------------------------------------------------------------

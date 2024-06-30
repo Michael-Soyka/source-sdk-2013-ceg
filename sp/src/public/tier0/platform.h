@@ -91,7 +91,6 @@
 		#define IsWindows() true
 		#define IsPC() true
 		#define IsConsole() false
-		#define IsX360() false
 		#define IsPS3() false
 		#define IS_WINDOWS_PC
 		#define PLATFORM_WINDOWS_PC 1 // Windows PC
@@ -112,7 +111,6 @@
 		#define IsWindows() false
 		#define IsPC() false
 		#define IsConsole() true
-		#define IsX360() true
 		#define IsPS3() false
 	#endif
 	// Adding IsPlatformOpenGL() to help fix a bunch of code that was using IsPosix() to infer if the DX->GL translation layer was being used.
@@ -125,7 +123,6 @@
 	#define IsPC() true
 	#define IsWindows() false
 	#define IsConsole() false
-	#define IsX360() false
 	#define IsPS3() false
 	#if defined( LINUX )
 		#define IsLinux() true
@@ -1334,11 +1331,6 @@ PLATFORM_INTERFACE bool Is64BitOS();
 #define WM_XMP_STATECHANGED					(WM_USER + 121)
 #define WM_XMP_PLAYBACKBEHAVIORCHANGED		(WM_USER + 122)
 #define WM_XMP_PLAYBACKCONTROLLERCHANGED	(WM_USER + 123)
-
-inline const char *GetPlatformExt( void )
-{
-	return IsX360() ? ".360" : "";
-}
 
 // flat view, 6 hw threads
 #define XBOX_PROCESSOR_0			( 1<<0 )
