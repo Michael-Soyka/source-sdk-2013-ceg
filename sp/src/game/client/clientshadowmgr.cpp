@@ -2730,17 +2730,14 @@ void CClientShadowMgr::ComputeHierarchicalBounds( IClientRenderable *pRenderable
 
 	// We could use a good solution for this in the regular PC build, since
 	// it causes lots of extra bone setups for entities you can't see.
-	if ( IsPC() )
-	{
-		IClientRenderable *pChild = pRenderable->FirstShadowChild();
+	IClientRenderable *pChild = pRenderable->FirstShadowChild();
 
-		// Don't recurse down the tree when we hit a blobby shadow
-		if ( pChild && shadowType != SHADOWS_SIMPLE )
-		{
-			matrix3x4_t matWorldToBBox;
-			MatrixInvert( pRenderable->RenderableToWorldTransform(), matWorldToBBox );
-			AddChildBounds( matWorldToBBox, pRenderable, vecMins, vecMaxs );
-		}
+	// Don't recurse down the tree when we hit a blobby shadow
+	if ( pChild && shadowType != SHADOWS_SIMPLE )
+	{
+		matrix3x4_t matWorldToBBox;
+		MatrixInvert( pRenderable->RenderableToWorldTransform(), matWorldToBBox );
+		AddChildBounds( matWorldToBBox, pRenderable, vecMins, vecMaxs );
 	}
 }
 

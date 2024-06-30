@@ -1574,16 +1574,9 @@ void CHudCloseCaption::CreateFonts( void )
 
 	m_hFonts[CCFONT_NORMAL] = pScheme->GetFont( "CloseCaption_Normal" );
 
-	if ( IsPC() )
-	{
-		m_hFonts[CCFONT_BOLD] = pScheme->GetFont( "CloseCaption_Bold" );
-		m_hFonts[CCFONT_ITALIC] = pScheme->GetFont( "CloseCaption_Italic" );
-		m_hFonts[CCFONT_ITALICBOLD] = pScheme->GetFont( "CloseCaption_BoldItalic" );
-	}
-	else
-	{
-		m_hFonts[CCFONT_SMALL] = pScheme->GetFont( "CloseCaption_Small" );
-	}
+	m_hFonts[CCFONT_BOLD] = pScheme->GetFont( "CloseCaption_Bold" );
+	m_hFonts[CCFONT_ITALIC] = pScheme->GetFont( "CloseCaption_Italic" );
+	m_hFonts[CCFONT_ITALICBOLD] = pScheme->GetFont( "CloseCaption_BoldItalic" );
 
 	m_nLineHeight = MAX( 6, vgui::surface()->GetFontTall( m_hFonts[ CCFONT_NORMAL ] ) );
 }
@@ -1694,7 +1687,6 @@ void CHudCloseCaption::ComputeStreamWork( int available_width, CCloseCaptionItem
 	WorkUnitParams params;
 
 	const wchar_t *curpos = item->GetStream();
-	int streamlen = wcslen( curpos );
 	CUtlVector< Color > colorStack;
 
 	const wchar_t *most_recent_space = NULL;
@@ -1770,15 +1762,7 @@ void CHudCloseCaption::ComputeStreamWork( int available_width, CCloseCaptionItem
 			continue;
 		}
 
-		int font;
-		if ( IsPC() )
-		{
-			font = params.GetFontNumber();
-		}
-		else
-		{
-			font = streamlen >= cc_smallfontlength.GetInt() ? CCFONT_SMALL : CCFONT_NORMAL;
-		}
+		int font = params.GetFontNumber();
 		vgui::HFont useF = m_hFonts[font];
 		params.font = useF;
 
@@ -2523,9 +2507,9 @@ void CHudCloseCaption::MsgFunc_CloseCaption(bf_read &msg)
 
 int CHudCloseCaption::GetFontNumber( bool bold, bool italic )
 {
-	if ( IsPC() && ( bold || italic ) )
+	if ( bold || italic )
 	{
-		if( bold && italic )
+		if ( bold && italic )
 		{
 			return CHudCloseCaption::CCFONT_ITALICBOLD;
 		}
@@ -2865,18 +2849,15 @@ void CHudCloseCaption::FindSound( char const *pchANSI )
 					}
 				}
 
-				if ( IsPC() )
+				for ( int r = g_pVGuiLocalize->GetFirstStringIndex(); r != INVALID_LOCALIZE_STRING_INDEX; r = g_pVGuiLocalize->GetNextStringIndex( r ) )
 				{
-					for ( int r = g_pVGuiLocalize->GetFirstStringIndex(); r != INVALID_LOCALIZE_STRING_INDEX; r = g_pVGuiLocalize->GetNextStringIndex( r ) )
+					const char *strName = g_pVGuiLocalize->GetNameByIndex( r );
+
+					search.SetHash( strName );
+
+					if ( search.hash == lu.hash )
 					{
-						const char *strName = g_pVGuiLocalize->GetNameByIndex( r );
-
-						search.SetHash( strName );
-
-						if ( search.hash == lu.hash )
-						{
-							Msg( "    '%s' localization matches\n", strName );
-						}
+						Msg( "    '%s' localization matches\n", strName );
 					}
 				}
 			}

@@ -2080,14 +2080,10 @@ void CViewRender::RenderView( const CViewSetup &view, int nClearFlags, int whatT
 		}
 
 		// And here are the screen-space effects
+		tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "GrabPreColorCorrectedFrame" );
 
-		if ( IsPC() )
-		{
-			tmZone( TELEMETRY_LEVEL0, TMZF_NONE, "GrabPreColorCorrectedFrame" );
-
-			// Grab the pre-color corrected frame for editing purposes
-			engine->GrabPreColorCorrectedFrame( view.x, view.y, view.width, view.height );
-		}
+		// Grab the pre-color corrected frame for editing purposes
+		engine->GrabPreColorCorrectedFrame( view.x, view.y, view.width, view.height );
 
 		PerformScreenSpaceEffects( 0, 0, view.width, view.height );
 
@@ -2325,10 +2321,7 @@ void CViewRender::RenderView( const CViewSetup &view, int nClearFlags, int whatT
 	// We can no longer use the 'current view' stuff set up in ViewDrawScene
 	s_bCanAccessCurrentView = false;
 
-	if ( IsPC() )
-	{
-		CDebugViewRender::GenerateOverdrawForTesting();
-	}
+	CDebugViewRender::GenerateOverdrawForTesting();
 
 	render->PopView( GetFrustum() );
 	g_WorldListCache.Flush();
@@ -4344,11 +4337,9 @@ void CRendering3dView::DrawTranslucentRenderables( bool bInSkybox, bool bShadowD
 				pMaterial->IncrementReferenceCount();
 				IMaterialVar *BaseTextureVar = pMaterial->FindVar( "$basetexture", NULL, false );
 				IMaterialVar *pDepthInAlpha = NULL;
-				if( IsPC() )
-				{
-					pDepthInAlpha = pMaterial->FindVar( "$ALPHADEPTH", NULL, false );
-					pDepthInAlpha->SetIntValue( 1 );
-				}
+
+				pDepthInAlpha = pMaterial->FindVar( "$ALPHADEPTH", NULL, false );
+				pDepthInAlpha->SetIntValue( 1 );
 
 				BaseTextureVar->SetTextureValue( pDepthTex );
 
@@ -4955,10 +4946,7 @@ void CShadowDepthView::Draw()
 
 	pRenderContext.SafeRelease();
 
-	if( IsPC() )
-	{
-		render->Push3DView( (*this), VIEW_CLEAR_DEPTH, m_pRenderTarget, GetFrustum(), m_pDepthTexture );
-	}
+	render->Push3DView( (*this), VIEW_CLEAR_DEPTH, m_pRenderTarget, GetFrustum(), m_pDepthTexture );
 
 	SetupCurrentView( origin, angles, VIEW_SHADOW_DEPTH_TEXTURE );
 
@@ -5424,10 +5412,7 @@ void CBaseWorldView::SSAO_DepthPass()
 
 	pRenderContext.SafeRelease();
 
-	if( IsPC() )
-	{
-		render->Push3DView( (*this), VIEW_CLEAR_DEPTH | VIEW_CLEAR_COLOR, pSSAO, GetFrustum() );
-	}
+	render->Push3DView( (*this), VIEW_CLEAR_DEPTH | VIEW_CLEAR_COLOR, pSSAO, GetFrustum() );
 
 	MDLCACHE_CRITICAL_SECTION();
 

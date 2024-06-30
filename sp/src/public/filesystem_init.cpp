@@ -851,24 +851,21 @@ FSReturnCode_t LocateGameInfoFile( const CFSSteamSetupInfo &fsInfo, char *pOutDi
 		 FS_OK == TryLocateGameInfoFile( pOutDir, outDirLen, false ) )
 		return FS_OK;
 
-	if ( IsPC() )
-	{
-		Warning( "Warning: falling back to auto detection of vproject directory.\n" );
+	Warning( "Warning: falling back to auto detection of vproject directory.\n" );
 		
-		// Now look for it in the directory they passed in.
-		if ( fsInfo.m_pDirectoryName )
-			Q_MakeAbsolutePath( pOutDir, outDirLen, fsInfo.m_pDirectoryName );
-		else
-			Q_MakeAbsolutePath( pOutDir, outDirLen, "." );
+	// Now look for it in the directory they passed in.
+	if ( fsInfo.m_pDirectoryName )
+		Q_MakeAbsolutePath( pOutDir, outDirLen, fsInfo.m_pDirectoryName );
+	else
+		Q_MakeAbsolutePath( pOutDir, outDirLen, "." );
 
-		if ( FS_OK == TryLocateGameInfoFile( pOutDir, outDirLen, true ) )
-			return FS_OK;
+	if ( FS_OK == TryLocateGameInfoFile( pOutDir, outDirLen, true ) )
+		return FS_OK;
 
-		// Use the CWD
-		Q_getwd( pOutDir, outDirLen );
-		if ( FS_OK == TryLocateGameInfoFile( pOutDir, outDirLen, true ) )
-			return FS_OK;
-	}
+	// Use the CWD
+	Q_getwd( pOutDir, outDirLen );
+	if ( FS_OK == TryLocateGameInfoFile( pOutDir, outDirLen, true ) )
+		return FS_OK;
 
 ShowError:
 	return SetupFileSystemError( true, FS_MISSING_GAMEINFO_FILE, 
