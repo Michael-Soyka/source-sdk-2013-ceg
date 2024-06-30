@@ -26,7 +26,8 @@ As of July 2023, CE has been tested on Visual Studio 2022 with the latest versio
     - [ ] Remove IsX360()
     - [ ] Remove IsXBOX()
     - [ ] Remove IsPC()
-    - [ ] Remove IsPS3
+    - [ ] Remove IsPS3()
+    - [ ] Remove IsConsole
     - [ ] Remove PP _XBOX
     - [ ] Remove PP _X360
     - [ ] Remove PP _PS3 
@@ -34,7 +35,8 @@ As of July 2023, CE has been tested on Visual Studio 2022 with the latest versio
     - [ ] Remove IsX360()
     - [ ] Remove IsXBOX()
     - [ ] Remove IsPC()
-    - [ ] Remove IsPS3
+    - [ ] Remove IsPS3()
+    - [ ] Remove IsConsole()
     - [ ] Remove PP _XBOX
     - [ ] Remove PP _X360
     - [ ] Remove PP _PS3
