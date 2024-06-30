@@ -791,7 +791,7 @@ void ForceAlignment( IZip *pak, bool bAlign, bool bCompatibleFormat, unsigned in
 static void WritePakFileLump( void )
 {
 	CUtlBuffer buf( 0, 0 );
-	GetPakFile()->ActivateByteSwapping( IsX360() );
+	GetPakFile()->ActivateByteSwapping( false );
 	GetPakFile()->SaveToBuffer( buf );
 
 	// must respect pak file alignment
@@ -2246,7 +2246,7 @@ void LoadBSPFile( const char *filename )
 	int paksize = CopyVariableLump<byte>( FIELD_CHARACTER, LUMP_PAKFILE, ( void ** )&pakbuffer );
 	if ( paksize > 0 )
 	{
-		GetPakFile()->ActivateByteSwapping( IsX360() );
+		GetPakFile()->ActivateByteSwapping( false );
 		GetPakFile()->ParseFromBuffer( pakbuffer, paksize );
 	}
 	else
@@ -4257,7 +4257,7 @@ void SwapPakfileLumpToDisk( const char *pInFilename )
 	int paksize = CopyVariableLump<byte>( FIELD_CHARACTER, LUMP_PAKFILE, ( void ** )&pakbuffer );
 	if ( paksize > 0 )
 	{
-		GetPakFile()->ActivateByteSwapping( IsX360() );
+		GetPakFile()->ActivateByteSwapping( false );
 		GetPakFile()->ParseFromBuffer( pakbuffer, paksize );
 
 		ConvertPakFileContents( pInFilename );
