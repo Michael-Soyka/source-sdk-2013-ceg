@@ -5,16 +5,13 @@
 //=============================================================================//
 
 #ifndef SENTENCE_H
-#define SENTENCE_H
+	#define SENTENCE_H
+
 #ifdef _WIN32
-#pragma once
+	#pragma once
 #endif
 
-// X360 optimizes out the extra memory needed by the editors in these types
-#ifndef _X360
 #define PHONEME_EDITOR 1
-#endif
-
 #include "utlvector.h"
 
 class CUtlBuffer;

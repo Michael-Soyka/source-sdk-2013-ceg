@@ -3201,7 +3201,7 @@ void CHL2_Player::UpdateWeaponPosture( void )
 
 		m_AutoaimTimer.Set( .1 );
 
-		VPROF( "hl2_x360_aiming" );
+		VPROF( "hl2_aiming" );
 
 		// Call the autoaim code to update the local player data, which allows the client to update.
 		autoaim_params_t params;

@@ -395,9 +395,6 @@ DBG_INTERFACE struct SDL_Window * GetAssertDialogParent();
 #define  AssertAlways( _exp )           							_AssertMsg( _exp, _T("Assertion Failed: ") _T(#_exp), ((void)0), false )
 #define  AssertMsgAlways( _exp, _msg )  							_AssertMsg( _exp, _msg, ((void)0), false )
 
-
-#if !defined( _X360 ) || !defined( _RETAIL )
-
 /* These are always compiled in */
 DBG_INTERFACE void Msg( PRINTF_FORMAT_STRING const tchar* pMsg, ... ) FMTFUNCTION( 1, 2 );
 DBG_INTERFACE void DMsg( const tchar *pGroupName, int level, PRINTF_FORMAT_STRING const tchar *pMsg, ... ) FMTFUNCTION( 3, 4 );
@@ -416,18 +413,6 @@ DBG_INTERFACE void Error( PRINTF_FORMAT_STRING const tchar *pMsg, ... ) FMTFUNCT
 DBG_INTERFACE void NORETURN Error( PRINTF_FORMAT_STRING const tchar *pMsg, ... ) FMTFUNCTION( 1, 2 );
 #endif
 
-#else
-
-inline void Msg( ... ) {}
-inline void DMsg( ... ) {}
-inline void Warning( PRINTF_FORMAT_STRING const tchar *pMsg, ... ) {}
-inline void DWarning( ... ) {}
-inline void Log( ... ) {}
-inline void DLog( ... ) {}
-inline void Error( ... ) {}
-
-#endif
-
 // You can use this macro like a runtime assert macro.
 // If the condition fails, then Error is called with the message. This macro is called
 // like AssertMsg, where msg must be enclosed in parenthesis:
@@ -440,8 +425,6 @@ inline void Error( ... ) {}
 	{						\
 		Error msg;			\
 	}
-
-#if !defined( _X360 ) || !defined( _RETAIL )
 
 /* A couple of super-common dynamic spew messages, here for convenience */
 /* These looked at the "developer" group */
@@ -478,19 +461,6 @@ DBG_INTERFACE void NetWarning( int level, PRINTF_FORMAT_STRING const tchar *pMsg
 DBG_INTERFACE void NetLog( int level, PRINTF_FORMAT_STRING const tchar *pMsg, ... ) FMTFUNCTION( 2, 3 );
 
 void ValidateSpew( class CValidator &validator );
-
-#else
-
-inline void DevMsg( ... ) {}
-inline void DevWarning( ... ) {}
-inline void DevLog( ... ) {}
-inline void ConMsg( ... ) {}
-inline void ConLog( ... ) {}
-inline void NetMsg( ... ) {}
-inline void NetWarning( ... ) {}
-inline void NetLog( ... ) {}
-
-#endif
 
 DBG_INTERFACE void COM_TimestampedLog( PRINTF_FORMAT_STRING char const *fmt, ... ) FMTFUNCTION( 1, 2 );
 
@@ -664,7 +634,7 @@ private:
 //
 // Purpose: Embed debug info in each file.
 //
-#if defined( _WIN32 ) && !defined( _X360 )
+#if defined( _WIN32 ) 
 
 	#ifdef _DEBUG
 		#pragma comment(compiler)

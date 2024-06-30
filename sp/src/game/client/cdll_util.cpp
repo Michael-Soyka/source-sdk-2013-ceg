@@ -26,11 +26,11 @@
 #include <vgui/ISurface.h>
 #include <vgui/ILocalize.h>
 #include "view.h"
-#include "ixboxsystem.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
-																						
+			
+
 ConVar localplayer_visionflags( "localplayer_visionflags", "0", FCVAR_DEVELOPMENTONLY );
 																						
 //-----------------------------------------------------------------------------
@@ -1162,11 +1162,7 @@ void UTIL_BoundToWorldSize( Vector *pVecPos )
 	}
 }
 
-#ifdef _X360
-#define MAP_KEY_FILE_DIR	"cfg"
-#else
 #define MAP_KEY_FILE_DIR	"media"
-#endif
 
 //-----------------------------------------------------------------------------
 // Purpose: Returns the filename to count map loads in

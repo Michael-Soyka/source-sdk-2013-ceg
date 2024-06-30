@@ -79,7 +79,6 @@
 #include "tier2/tier2.h"
 #include "particles/particles.h"
 #include "gamestats.h"
-#include "ixboxsystem.h"
 #include "engine/imatchmaking.h"
 #include "hl2orange.spa.h"
 #include "particle_parse.h"
@@ -180,11 +179,10 @@ ISoundEmitterSystemBase *soundemitterbase = NULL;
 IServerPluginHelpers *serverpluginhelpers = NULL;
 IServerEngineTools *serverenginetools = NULL;
 ISceneFileCache *scenefilecache = NULL;
-IXboxSystem *xboxsystem = NULL;	// Xbox 360 only
-IMatchmaking *matchmaking = NULL;	// Xbox 360 only
+IMatchmaking *matchmaking = NULL;
 #if defined( REPLAY_ENABLED )
-IReplaySystem *g_pReplay = NULL;
-IServerReplayContext *g_pReplayServerContext = NULL;
+	IReplaySystem *g_pReplay = NULL;
+	IServerReplayContext *g_pReplayServerContext = NULL;
 #endif
 
 IGameSystem *SoundEmitterSystem();
@@ -198,7 +196,7 @@ class IMaterialSystem;
 class IStudioRender;
 
 #ifdef _DEBUG
-static ConVar s_UseNetworkVars( "UseNetworkVars", "1", FCVAR_CHEAT, "For profiling, toggle network vars." );
+	static ConVar s_UseNetworkVars( "UseNetworkVars", "1", FCVAR_CHEAT, "For profiling, toggle network vars." );
 #endif
 
 extern ConVar sv_noclipduringpause;
@@ -573,10 +571,8 @@ bool CServerGameDLL::DLLInit( CreateInterfaceFn appSystemFactory,
 	if ( cvar == NULL )
 		return false;
 
-#ifndef _X360
 	s_SteamAPIContext.Init();
 	s_SteamGameServerAPIContext.Init();
-#endif
 
 	// init each (seperated for ease of debugging)
 	if ( (engine = (IVEngineServer*)appSystemFactory(INTERFACEVERSION_VENGINESERVER, NULL)) == NULL )
@@ -778,10 +774,8 @@ void CServerGameDLL::DLLShutdown( void )
 	// reset (shutdown) the gamestatsupload connection
 	gamestatsuploader->InitConnection();
 
-#ifndef _X360
 	s_SteamAPIContext.Clear(); // Steam API context shutdown
 	s_SteamGameServerAPIContext.Clear();
-#endif	
 
 	gameeventmanager = NULL;
 	
@@ -2132,48 +2126,6 @@ void UpdateRichPresence ( void )
 	{
 		Warning( "UpdateRichPresence failed in GameInterface. Didn't recognize -game parameter." );
 	}
-
-#if defined( _X360 )
-
-	// Set chapter context based on mapname
-	if ( !xboxsystem->UserSetContext( XBX_GetPrimaryUserId(), iChapterID, iChapterIndex, true ) )
-	{
-		Warning( "GameInterface: UserSetContext failed.\n" );
-	}
-
-	if ( commentary.GetBool() )
-	{
-		// Set presence to show the user is playing developer commentary
-		if ( !xboxsystem->UserSetContext( XBX_GetPrimaryUserId(), X_CONTEXT_PRESENCE, CONTEXT_PRESENCE_COMMENTARY, true ) )
-		{
-			Warning( "GameInterface: UserSetContext failed.\n" );
-		}
-	}
-	else
-	{
-		// Set presence to show the user is in-game
-		if ( !xboxsystem->UserSetContext( XBX_GetPrimaryUserId(), X_CONTEXT_PRESENCE, iGamePresenceID, true ) )
-		{
-			Warning( "GameInterface: UserSetContext failed.\n" );
-		}
-	}
-	
-	// Set which game the user is playing
-	if ( !xboxsystem->UserSetContext( XBX_GetPrimaryUserId(), CONTEXT_GAME, iGameID, true ) )
-	{
-		Warning( "GameInterface: UserSetContext failed.\n" );
-	}
-
-	if ( !xboxsystem->UserSetContext( XBX_GetPrimaryUserId(), X_CONTEXT_GAME_TYPE, X_CONTEXT_GAME_TYPE_STANDARD, true ) )
-	{
-		Warning( "GameInterface: UserSetContext failed.\n" );
-	}
-
-	if ( !xboxsystem->UserSetContext( XBX_GetPrimaryUserId(), X_CONTEXT_GAME_MODE, CONTEXT_GAME_MODE_SINGLEPLAYER, true ) )
-	{
-		Warning( "GameInterface: UserSetContext failed.\n" );
-	}
-#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -2362,14 +2314,12 @@ void CServerGameEnts::CheckTransmit( CCheckTransmitInfo *pInfo, const unsigned s
 	CBasePlayer *pRecipientPlayer = static_cast<CBasePlayer*>( pRecipientEntity );
 	const int skyBoxArea = pRecipientPlayer->m_Local.m_skybox3d.area;
 
-#ifndef _X360
 	const bool bIsHLTV = pRecipientPlayer->IsHLTV();
 	const bool bIsReplay = pRecipientPlayer->IsReplay();
 
 	// m_pTransmitAlways must be set if HLTV client
 	Assert( bIsHLTV == ( pInfo->m_pTransmitAlways != NULL) ||
 		    bIsReplay == ( pInfo->m_pTransmitAlways != NULL) );
-#endif
 
 	for ( int i=0; i < nEdicts; i++ )
 	{
@@ -2396,12 +2346,11 @@ void CServerGameEnts::CheckTransmit( CCheckTransmitInfo *pInfo, const unsigned s
 				// mark entity for sending
 				pInfo->m_pTransmitEdict->Set( iEdict );
 	
-#ifndef _X360
 				if ( bIsHLTV || bIsReplay )
 				{
 					pInfo->m_pTransmitAlways->Set( iEdict );
 				}
-#endif	
+
 				CServerNetworkProperty *pEnt = static_cast<CServerNetworkProperty*>( pEdict->GetNetworkable() );
 				if ( !pEnt )
 					break;
@@ -2440,7 +2389,6 @@ void CServerGameEnts::CheckTransmit( CCheckTransmitInfo *pInfo, const unsigned s
 
 		CServerNetworkProperty *netProp = static_cast<CServerNetworkProperty*>( pEdict->GetNetworkable() );
 
-#ifndef _X360
 		if ( bIsHLTV || bIsReplay )
 		{
 			// for the HLTV/Replay we don't cull against PVS
@@ -2454,7 +2402,6 @@ void CServerGameEnts::CheckTransmit( CCheckTransmitInfo *pInfo, const unsigned s
 			}
 			continue;
 		}
-#endif
 
 		// Always send entities in the player's 3d skybox.
 		// Sidenote: call of AreaNum() ensures that PVS data is up to date for this entity

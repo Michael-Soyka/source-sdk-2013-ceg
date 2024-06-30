@@ -3,7 +3,7 @@
 // Purpose: 
 //
 //===========================================================================//
-#if defined( _WIN32 ) && !defined( _X360 )
+#if defined( _WIN32 ) 
 #include <windows.h>
 #endif
 
@@ -12,7 +12,7 @@
 #endif
 
 #if defined( PROTECTED_THINGS_ENABLE )
-#undef PROTECTED_THINGS_ENABLE // from protected_things.h
+	#undef PROTECTED_THINGS_ENABLE // from protected_things.h
 #endif
 
 #include <stdio.h>
@@ -25,20 +25,18 @@
 #include "tier0/icommandline.h"
 #include "tier0/dbg.h"
 #include "tier0/threadtools.h"
-#ifdef _WIN32
-#include <direct.h> // getcwd
-#elif POSIX
-#include <dlfcn.h>
-#include <unistd.h>
-#define _getcwd getcwd
-#endif
-#if defined( _X360 )
-#include "xbox/xbox_win32stubs.h"
-#endif
 
+#ifdef _WIN32
+	#include <direct.h> // getcwd
+#elif POSIX
+	#include <dlfcn.h>
+	#include <unistd.h>
+	#define _getcwd getcwd
+#endif
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+
 
 // ------------------------------------------------------------------------------------ //
 // InterfaceReg.
@@ -123,7 +121,7 @@ void *GetModuleHandle(const char *name)
 }
 #endif
 
-#if defined( _WIN32 ) && !defined( _X360 )
+#if defined( _WIN32 ) 
 #define WIN32_LEAN_AND_MEAN
 #include "windows.h"
 #endif
@@ -168,14 +166,10 @@ struct ThreadedLoadLibaryContext_t
 // wraps LoadLibraryEx() since 360 doesn't support that
 static HMODULE InternalLoadLibrary( const char *pName, Sys_Flags flags )
 {
-#if defined(_X360)
-	return LoadLibrary( pName );
-#else
 	if ( flags & SYS_NOLOAD )
 		return GetModuleHandle( pName );
 	else
 		return LoadLibraryEx( pName, NULL, LOAD_WITH_ALTERED_SEARCH_PATH );
-#endif
 }
 unsigned ThreadedLoadLibraryFunc( void *pParam )
 {
@@ -214,10 +208,6 @@ HMODULE Sys_LoadLibrary( const char *pLibraryName, Sys_Flags flags )
 	context.m_hLibrary = 0;
 
 	ThreadHandle_t h = CreateSimpleThread( ThreadedLoadLibraryFunc, &context );
-
-#ifdef _X360
-	ThreadSetAffinity( h, XBOX_PROCESSOR_3 );
-#endif
 
 	unsigned int nTimeout = 0;
 	while( ThreadWaitForObject( h, true, nTimeout ) == TW_TIMEOUT )
@@ -289,34 +279,32 @@ CSysModule *Sys_LoadModule( const char *pModuleName, Sys_Flags flags /* = SYS_NO
 	{
 		// full path failed, let LoadLibrary() try to search the PATH now
 		hDLL = Sys_LoadLibrary( pModuleName, flags );
-#if defined( _DEBUG )
-		if ( !hDLL )
-		{
-// So you can see what the error is in the debugger...
-#if defined( _WIN32 ) && !defined( _X360 )
-			char *lpMsgBuf;
-			
-			FormatMessage( 
-				FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-				FORMAT_MESSAGE_FROM_SYSTEM | 
-				FORMAT_MESSAGE_IGNORE_INSERTS,
-				NULL,
-				GetLastError(),
-				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-				(LPTSTR) &lpMsgBuf,
-				0,
-				NULL 
-			);
 
-			LocalFree( (HLOCAL)lpMsgBuf );
-#elif defined( _X360 )
-			DWORD error = GetLastError();
-			Msg( "Error(%d) - Failed to load %s:\n", error, pModuleName );
-#else
-			Msg( "Failed to load %s: %s\n", pModuleName, dlerror() );
-#endif // _WIN32
-		}
-#endif // DEBUG
+		#if defined( _DEBUG )
+			if ( !hDLL )
+			{
+				// So you can see what the error is in the debugger...
+				#if defined( _WIN32 ) 
+					char *lpMsgBuf;
+			
+					FormatMessage( 
+						FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+						FORMAT_MESSAGE_FROM_SYSTEM | 
+						FORMAT_MESSAGE_IGNORE_INSERTS,
+						NULL,
+						GetLastError(),
+						MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+						(LPTSTR) &lpMsgBuf,
+						0,
+						NULL 
+					);
+
+					LocalFree( (HLOCAL)lpMsgBuf );
+				#else
+					Msg( "Failed to load %s: %s\n", pModuleName, dlerror() );
+				#endif // _WIN32
+			}
+		#endif // DEBUG
 	}
 
 #if !defined(LINUX)

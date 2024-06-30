@@ -141,12 +141,12 @@ enum ThreeState_t
 
 typedef float vec_t;
 
-#if defined(__GNUC__)
-#define fpmin __builtin_fminf
-#define fpmax __builtin_fmaxf
-#elif !defined(_X360)
-#define fpmin min
-#define fpmax max
+#if defined( __GNUC__ )
+	#define fpmin __builtin_fminf
+	#define fpmax __builtin_fmaxf
+#else
+	#define fpmin min
+	#define fpmax max
 #endif
 
 

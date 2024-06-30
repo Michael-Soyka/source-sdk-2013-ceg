@@ -9,14 +9,6 @@
 #ifndef PLATFORM_H
 	#define PLATFORM_H
 
-#if defined( _X360 )
-	#define NO_STEAM
-	#define NO_VOICE
-	// for the 360, the ppc platform and the rtos are tightly coupled
-	// setup the 360 environment here !once! for much less leaf module include wackiness
-	// these are critical order and purposely appear *before* anything else
-#endif
-
 #include "wchartypes.h"
 #include "basetypes.h"
 #include "tier0/valve_off.h"
@@ -69,38 +61,36 @@
 #endif
 
 #ifdef _WIN32
+
 	#define IsLinux() false
 	#define IsOSX() false
 	#define IsPosix() false
 	#define PLATFORM_WINDOWS 1 // Windows PC or Xbox 360
-	#ifndef _X360
-		#define IsWindows() true
-		#define IS_WINDOWS_PC
-		#define PLATFORM_WINDOWS_PC 1 // Windows PC
-		#ifdef _WIN64
-			#define IsPlatformWindowsPC64() true
-			#define IsPlatformWindowsPC32() false
-			#define PLATFORM_WINDOWS_PC64 1
-		#else
-			#define IsPlatformWindowsPC64() false
-			#define IsPlatformWindowsPC32() true
-			#define PLATFORM_WINDOWS_PC32 1
-		#endif
+	#define IsWindows() true
+	#define IS_WINDOWS_PC
+	#define PLATFORM_WINDOWS_PC 1 // Windows PC
+
+	#ifdef _WIN64
+		#define IsPlatformWindowsPC64() true
+		#define IsPlatformWindowsPC32() false
+		#define PLATFORM_WINDOWS_PC64 1
 	#else
-		#define PLATFORM_X360 1
-		#ifndef _CONSOLE
-			#define _CONSOLE
-		#endif
-		#define IsWindows() false
+		#define IsPlatformWindowsPC64() false
+		#define IsPlatformWindowsPC32() true
+		#define PLATFORM_WINDOWS_PC32 1
 	#endif
+
 	// Adding IsPlatformOpenGL() to help fix a bunch of code that was using IsPosix() to infer if the DX->GL translation layer was being used.
 	#if defined( DX_TO_GL_ABSTRACTION )
 		#define IsPlatformOpenGL() true
 	#else
 		#define IsPlatformOpenGL() false
 	#endif
+
 #elif defined( POSIX )
+
 	#define IsWindows() false
+
 	#if defined( LINUX )
 		#define IsLinux() true
 	#else
@@ -115,8 +105,11 @@
 	
 	#define IsPosix() true
 	#define IsPlatformOpenGL() true
+
 #else
+
 	#error
+
 #endif
 
 typedef unsigned char uint8;
@@ -141,13 +134,6 @@ typedef signed char int8;
 	#else
 		typedef __int32 intp;
 		typedef unsigned __int32 uintp;
-	#endif
-
-	#if defined( _X360 )
-		#ifdef __m128
-			#undef __m128
-		#endif
-		#define __m128				__vector4
 	#endif
 
 	// Use this to specify that a function is an override of a virtual function.
@@ -254,11 +240,7 @@ typedef unsigned int		uint;
 // Note: NJS: This is not enabled for regular PC, due to not knowing the implications of exporting a class with no no vtable.
 //       It's probable that this shouldn't be an issue, but an experiment should be done to verify this.
 //
-#ifndef _X360
 #define abstract_class class
-#else
-#define abstract_class class NO_VTABLE
-#endif
 
 
 // MSVC CRT uses 0x7fff while gcc uses MAX_INT, leading to mismatches between platforms
@@ -356,19 +338,18 @@ typedef void * HINSTANCE;
 #define ALIGN_VALUE( val, alignment ) ( ( (val) + (alignment) - 1 ) & ~( (alignment) - 1 ) ) //  need macro for constant expression
 
 // Used to step into the debugger
-#if defined( _WIN32 ) && !defined( _X360 )
-#define DebuggerBreak()  __debugbreak()
-#elif defined( _X360 )
-#define DebuggerBreak() DebugBreak()
+#if defined( _WIN32 ) 
+	#define DebuggerBreak()  __debugbreak()
 #else
 	// On OSX, SIGTRAP doesn't really stop the thread cold when debugging.
 	// So if being debugged, use INT3 which is precise.
-#ifdef OSX
-#define DebuggerBreak()  if ( Plat_IsInDebugSession() ) { __asm ( "int $3" ); } else { raise(SIGTRAP); }
-#else
-#define DebuggerBreak()  raise(SIGTRAP)
+	#ifdef OSX
+	#define DebuggerBreak()  if ( Plat_IsInDebugSession() ) { __asm ( "int $3" ); } else { raise(SIGTRAP); }
+	#else
+	#define DebuggerBreak()  raise(SIGTRAP)
+	#endif
 #endif
-#endif
+
 #define	DebuggerBreakIfDebugging() if ( !Plat_IsInDebugSession() ) ; else DebuggerBreak()
 
 // C functions for external declarations that call the appropriate C++ methods
@@ -522,41 +503,36 @@ typedef void * HINSTANCE;
 #endif
 
 // Used for standard calling conventions
-#if defined( _WIN32 ) && !defined( _X360 )
+#if defined( _WIN32 ) 
 	#define  STDCALL				__stdcall
 	#define  FASTCALL				__fastcall
 	#define  FORCEINLINE			__forceinline
 	// GCC 3.4.1 has a bug in supporting forced inline of templated functions
 	// this macro lets us not force inlining in that case
 	#define  FORCEINLINE_TEMPLATE		__forceinline
-#elif defined( _X360 )
-	#define  STDCALL				__stdcall
-	#ifdef FORCEINLINE
-		#undef FORCEINLINE
-#endif 
-	#define  FORCEINLINE			__forceinline
-	#define  FORCEINLINE_TEMPLATE		__forceinline
-	#else
-		#define  STDCALL
+#else
+	#define  STDCALL
 	#define  FASTCALL
+
 	#ifdef _LINUX_DEBUGGABLE
 		#define  FORCEINLINE
 	#else
-			#define  FORCEINLINE inline __attribute__ ((always_inline))
-		#endif
+		#define  FORCEINLINE inline __attribute__ ((always_inline))
+	#endif
+
 	// GCC 3.4.1 has a bug in supporting forced inline of templated functions
 	// this macro lets us not force inlining in that case
-#if __GNUC__ < 4
-#define FORCEINLINE_TEMPLATE inline
-#else
-#define FORCEINLINE_TEMPLATE inline __attribute__((always_inline))
-#endif
-#if __cpp_constexpr >= 201304
-#define CONSTEXPR_FUNC constexpr
-#else
-#define CONSTEXPR_FUNC
-#endif
-//	#define  __stdcall			__attribute__ ((__stdcall__))
+	#if __GNUC__ < 4
+		#define FORCEINLINE_TEMPLATE inline
+	#else
+		#define FORCEINLINE_TEMPLATE inline __attribute__((always_inline))
+	#endif
+	#if __cpp_constexpr >= 201304
+		#define CONSTEXPR_FUNC constexpr
+	#else
+		#define CONSTEXPR_FUNC
+	#endif
+	//	#define  __stdcall			__attribute__ ((__stdcall__))
 #endif
 
 // Force a function call site -not- to inlined. (useful for profiling)
@@ -725,8 +701,6 @@ typedef void *HANDLE;
 //-----------------------------------------------------------------------------
 // fsel
 //-----------------------------------------------------------------------------
-#ifndef _X360
-
 static FORCEINLINE float fsel(float fComparand, float fValGE, float fLT)
 {
 	return fComparand >= 0 ? fValGE : fLT;
@@ -736,13 +710,6 @@ static FORCEINLINE double fsel(double fComparand, double fValGE, double fLT)
 	return fComparand >= 0 ? fValGE : fLT;
 }
 
-#else
-
-// __fsel(double fComparand, double fValGE, double fLT) == fComparand >= 0 ? fValGE : fLT
-// this is much faster than if ( aFloat > 0 ) { x = .. }
-#define fsel __fsel
-
-#endif
 
 
 //-----------------------------------------------------------------------------
@@ -750,7 +717,6 @@ static FORCEINLINE double fsel(double fComparand, double fValGE, double fLT)
 //-----------------------------------------------------------------------------
 //#define CHECK_FLOAT_EXCEPTIONS		1
 
-#if !defined( _X360 )
 #if defined( _MSC_VER )
 
 	#if defined( PLATFORM_WINDOWS_PC64 )
@@ -810,40 +776,6 @@ static FORCEINLINE double fsel(double fComparand, double fValGE, double fLT)
 
 #endif // _MSC_VER
 
-#else
-
-	#ifdef _DEBUG
-		FORCEINLINE bool IsFPUControlWordSet()
-		{
-			float f = 0.996f;
-			union
-			{
-				double flResult;
-				int pResult[2];
-			};
-			flResult = __fctiw( f );
-			return ( pResult[1] == 1 );
-		}
-	#endif
-
-	inline void SetupFPUControlWord()
-	{
-		// Set round-to-nearest in FPSCR
-		// (cannot assemble, must use op-code form)
-		__emit( 0xFF80010C );	// mtfsfi  7,0
-
-		// Favour compatibility over speed (make sure the VPU set to Java-compliant mode)
-		// NOTE: the VPU *always* uses round-to-nearest
-			__vector4  a = { 0.0f, 0.0f, 0.0f, 0.0f };
-			a;				//	Avoid compiler warning
-			__asm
-		{
-			mtvscr a;	// Clear the Vector Status & Control Register to zero
-		}
-	}
-
-#endif // _X360
-
 //-----------------------------------------------------------------------------
 // Purpose: Standard functions for handling endian-ness
 //-----------------------------------------------------------------------------
@@ -902,28 +834,7 @@ inline T QWordSwapC( T dw )
 // Fast swaps
 //-------------------------------------
 
-#if defined( _X360 )
-
-	#define WordSwap  WordSwap360Intr
-	#define DWordSwap DWordSwap360Intr
-
-	template <typename T>
-	inline T WordSwap360Intr( T w )
-	{
-		T output;
-		__storeshortbytereverse( w, 0, &output );
-		return output;
-	}
-
-	template <typename T>
-	inline T DWordSwap360Intr( T dw )
-	{
-		T output;
-		__storewordbytereverse( dw, 0, &output );
-		return output;
-	}
-
-#elif defined( _MSC_VER ) && !defined( PLATFORM_WINDOWS_PC64 )
+#if defined( _MSC_VER ) && !defined( PLATFORM_WINDOWS_PC64 )
 
 	#define WordSwap  WordSwapAsm
 	#define DWordSwap DWordSwapAsm
@@ -971,8 +882,8 @@ inline T QWordSwapC( T dw )
 #define VALVE_LITTLE_ENDIAN 1
 #endif
 
-#if defined( _SGI_SOURCE ) || defined( _X360 )
-#define	VALVE_BIG_ENDIAN 1
+#if defined( _SGI_SOURCE )
+	#define	VALVE_BIG_ENDIAN 1
 #endif
 
 // If a swapped float passes through the fpu, the bytes may get changed.
@@ -1047,17 +958,6 @@ inline void SwapFloat( float *pOut, const float *pIn )		{ SafeSwapFloat( pOut, p
 
 #endif
 
-#if _X360
-FORCEINLINE unsigned long LoadLittleDWord( const unsigned long *base, unsigned int dwordIndex )
-		{
-			return __loadwordbytereverse( dwordIndex<<2, base );
-		}
-
-FORCEINLINE void StoreLittleDWord( unsigned long *base, unsigned int dwordIndex, unsigned long dword )
-		{
-			__storewordbytereverse( dword, dwordIndex<<2, base );
-		}
-#else
 FORCEINLINE unsigned long LoadLittleDWord( const unsigned long *base, unsigned int dwordIndex )
 	{
 		return LittleDWord( base[dwordIndex] );
@@ -1067,7 +967,6 @@ FORCEINLINE void StoreLittleDWord( unsigned long *base, unsigned int dwordIndex,
 	{
 		base[dwordIndex] = LittleDWord(dword);
 	}
-#endif
 
 
 //-----------------------------------------------------------------------------
@@ -1117,9 +1016,7 @@ PLATFORM_INTERFACE struct tm *		Plat_localtime( const time_t *timep, struct tm *
 
 inline uint64 Plat_Rdtsc()
 {
-#if defined( _X360 )
-	return ( uint64 )__mftb32();
-#elif defined( _WIN64 )
+#if defined( _WIN64 )
 	return ( uint64 )__rdtsc();
 #elif defined( _WIN32 )
   #if defined( _MSC_VER ) && ( _MSC_VER >= 1400 )
@@ -1250,13 +1147,8 @@ PLATFORM_INTERFACE bool Plat_FastVerifyHardwareKey();
 //-----------------------------------------------------------------------------
 PLATFORM_INTERFACE void* Plat_SimpleLog( const tchar* file, int line );
 
-#if _X360
-#define Plat_FastMemset XMemSet
-#define Plat_FastMemcpy XMemCpy
-#else
 #define Plat_FastMemset memset
 #define Plat_FastMemcpy memcpy
-#endif
 
 //-----------------------------------------------------------------------------
 // Returns true if debugger attached, false otherwise
@@ -1330,9 +1222,6 @@ PLATFORM_INTERFACE bool Is64BitOS();
 //-----------------------------------------------------------------------------
 #include "tier0/fasttimer.h"
 
-#if defined( _X360 )
-#include "xbox/xbox_core.h"
-#endif
 
 //-----------------------------------------------------------------------------
 // Methods to invoke the constructor, copy constructor, and destructor

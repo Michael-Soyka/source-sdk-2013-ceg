@@ -506,10 +506,6 @@ DECLARE_CLIENT_EFFECT( "GlassImpact", GlassImpactCallback );
 //-----------------------------------------------------------------------------
 void FX_AntlionImpact( const Vector &pos, trace_t *trace )
 {
-#if defined( _X360 )
-	return;
-#endif // _X360
-
 	VPROF_BUDGET( "FX_AntlionImpact", VPROF_BUDGETGROUP_PARTICLE_RENDERING );
 
 	CSmartPtr<CSimple3DEmitter> fleckEmitter = CSimple3DEmitter::Create( "FX_DebrisFlecks" );

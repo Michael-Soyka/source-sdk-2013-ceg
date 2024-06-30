@@ -6,22 +6,21 @@
 //=============================================================================//
 
 #ifndef FASTTIMER_H
-#define FASTTIMER_H
+	#define FASTTIMER_H
+
 #ifdef _WIN32
-#pragma once
+	#pragma once
 #endif
 
 #ifdef _WIN32
-#include <intrin.h>
+	#include <intrin.h>
 #endif
 
 #include <assert.h>
 #include "tier0/platform.h"
 
+
 PLATFORM_INTERFACE uint64 g_ClockSpeed;
-#if defined( _X360 ) && defined( _CERT )
-PLATFORM_INTERFACE unsigned long g_dwFakeFastCounter;
-#endif
 
 PLATFORM_INTERFACE double g_ClockSpeedMicrosecondsMultiplier;
 PLATFORM_INTERFACE double g_ClockSpeedMillisecondsMultiplier;

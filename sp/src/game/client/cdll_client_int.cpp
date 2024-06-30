@@ -88,24 +88,23 @@
 #include "toolframework_client.h"
 #include "hltvcamera.h"
 #if defined( REPLAY_ENABLED )
-#include "replay/replaycamera.h"
-#include "replay/replay_ragdoll.h"
-#include "qlimits.h"
-#include "replay/replay.h"
-#include "replay/ireplaysystem.h"
-#include "replay/iclientreplay.h"
-#include "replay/ienginereplay.h"
-#include "replay/ireplaymanager.h"
-#include "replay/ireplayscreenshotmanager.h"
-#include "replay/iclientreplaycontext.h"
-#include "replay/vgui/replayconfirmquitdlg.h"
-#include "replay/vgui/replaybrowsermainpanel.h"
-#include "replay/vgui/replayinputpanel.h"
-#include "replay/vgui/replayperformanceeditor.h"
+	#include "replay/replaycamera.h"
+	#include "replay/replay_ragdoll.h"
+	#include "qlimits.h"
+	#include "replay/replay.h"
+	#include "replay/ireplaysystem.h"
+	#include "replay/iclientreplay.h"
+	#include "replay/ienginereplay.h"
+	#include "replay/ireplaymanager.h"
+	#include "replay/ireplayscreenshotmanager.h"
+	#include "replay/iclientreplaycontext.h"
+	#include "replay/vgui/replayconfirmquitdlg.h"
+	#include "replay/vgui/replaybrowsermainpanel.h"
+	#include "replay/vgui/replayinputpanel.h"
+	#include "replay/vgui/replayperformanceeditor.h"
 #endif
 #include "vgui/ILocalize.h"
 #include "vgui/IVGui.h"
-#include "ixboxsystem.h"
 #include "ipresence.h"
 #include "engine/imatchmaking.h"
 #include "cdll_bounded_cvars.h"
@@ -113,10 +112,10 @@
 #include "gamestats.h"
 #include "particle_parse.h"
 #if defined( TF_CLIENT_DLL )
-#include "rtime.h"
-#include "tf_hud_disconnect_prompt.h"
-#include "../engine/audio/public/sound.h"
-#include "tf_shared_content_manager.h"
+	#include "rtime.h"
+	#include "tf_hud_disconnect_prompt.h"
+	#include "../engine/audio/public/sound.h"
+	#include "tf_shared_content_manager.h"
 #endif
 #include "clientsteamcontext.h"
 #include "renamed_recvtable_compat.h"
@@ -200,7 +199,6 @@ IGameEventManager2 *gameeventmanager = NULL;
 ISoundEmitterSystemBase *soundemitterbase = NULL;
 IInputSystem *inputsystem = NULL;
 ISceneFileCache *scenefilecache = NULL;
-IXboxSystem *xboxsystem = NULL;	// Xbox 360 only
 IMatchmaking *matchmaking = NULL;
 IUploadGameStats *gamestatsuploader = NULL;
 IClientReplayContext *g_pClientReplayContext = NULL;
@@ -1071,13 +1069,12 @@ int CHLClient::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physi
 
 	C_BaseAnimating::InitBoneSetupThreadPool();
 
-#if defined( WIN32 ) && !defined( _X360 )
+#if defined( WIN32 ) 
 	// NVNT connect haptics sytem
 	ConnectHaptics(appSystemFactory);
 #endif
-#ifndef _X360
+
 	HookHapticMessages(); // Always hook the messages
-#endif
 
 	return true;
 }
@@ -1210,7 +1207,7 @@ void CHLClient::Shutdown( void )
 
 	gameeventmanager = NULL;
 
-#if defined( WIN32 ) && !defined( _X360 )
+#if defined( WIN32 ) 
 	// NVNT Disconnect haptics system
 	DisconnectHaptics();
 #endif

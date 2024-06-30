@@ -14,7 +14,7 @@
 #include "vgui/VGUI.h"
 
 #if !defined( _X360 )
-#include "xbox/xboxstubs.h"
+	#include "xbox/xboxstubs.h"
 #endif
 
 class KeyValues;

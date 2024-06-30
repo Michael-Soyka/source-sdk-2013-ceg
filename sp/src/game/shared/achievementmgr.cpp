@@ -5,9 +5,11 @@
 //=============================================================================
 
 #include "cbase.h"
+
 #ifdef _WIN32
-#include "winerror.h"
+	#include "winerror.h"
 #endif
+
 #include "achievementmgr.h"
 #include "icommandline.h"
 #include "KeyValues.h"
@@ -16,35 +18,31 @@
 #include "usermessages.h"
 #include "fmtstr.h"
 #include "tier1/utlbuffer.h"
+
 #ifdef CLIENT_DLL
-#include "achievement_notification_panel.h"
-#include "c_playerresource.h"
-#include "gamestats.h"
-#ifdef TF_CLIENT_DLL
-#include "econ_item_inventory.h"
-#endif //TF_CLIENT_DLL
+	#include "achievement_notification_panel.h"
+	#include "c_playerresource.h"
+	#include "gamestats.h"
+	#ifdef TF_CLIENT_DLL
+	#include "econ_item_inventory.h"
+	#endif //TF_CLIENT_DLL
 #else
-#include "enginecallback.h"
+	#include "enginecallback.h"
 #endif // CLIENT_DLL
-#ifndef _X360
+
 #include "steam/isteamuserstats.h"
 #include "steam/isteamfriends.h"
 #include "steam/isteamutils.h"
 #include "steam/steam_api.h"
 #include "steam/isteamremotestorage.h"
-#else
-#include "xbox/xbox_win32stubs.h"
-#endif
+
 #include "tier3/tier3.h"
 #include "vgui/ILocalize.h"
-#ifdef _X360
-#include "ixboxsystem.h"
-#endif  // _X360
 #include "engine/imatchmaking.h"
 #include "tier0/vprof.h"
 
 #if defined(TF_DLL) || defined(TF_CLIENT_DLL)
-#include "tf_gamerules.h"
+	#include "tf_gamerules.h"
 #endif
 
 ConVar	cc_achievement_debug( "achievement_debug", "0", FCVAR_CHEAT | FCVAR_REPLICATED, "Turn on achievement debug msgs." );
@@ -89,11 +87,6 @@ static void WriteAchievementGlobalState( KeyValues *pKV, bool bPersistToSteamClo
 //=============================================================================
 
 {
-#ifdef _X360
-	if ( XBX_GetStorageDeviceId() == XBX_INVALID_STORAGE_ID || XBX_GetStorageDeviceId() == XBX_STORAGE_DECLINED )
-		return;
-#endif
-
 	char szFilename[_MAX_PATH];
 
 	Q_snprintf(szFilename, sizeof(szFilename), "GameState.txt");
@@ -163,13 +156,6 @@ static void WriteAchievementGlobalState( KeyValues *pKV, bool bPersistToSteamClo
     //=============================================================================
     // HPE_END
     //=============================================================================
-
-#ifdef _X360
-	if ( xboxsystem )
-	{
-		xboxsystem->FinishContainerWrites();
-	}
-#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -927,15 +913,6 @@ bool CAchievementMgr::CheckAchievementsEnabled()
 		return false;
 	}
 
-#if defined( _X360 )
-	uint state = XUserGetSigninState( XBX_GetPrimaryUserId() );
-	if ( state == eXUserSigninState_NotSignedIn )
-	{
-		Msg( "Achievements disabled: not signed in to XBox user account.\n" );
-		return false;
-	}
-#endif
-
 	// can't be in commentary mode, user is invincible
 	if ( IsInCommentaryMode() )
 	{
@@ -1012,74 +989,72 @@ bool CAchievementMgr::CheckAchievementsEnabled()
 }
 
 #ifdef CLIENT_DLL
-
-//-----------------------------------------------------------------------------
-// Purpose: Returns the whether all of the local player's team mates are
-//			on her friends list, and if there are at least the specified # of
-//			teammates.  Involves cross-process calls to Steam so this is mildly
-//			expensive, don't call this every frame.
-//-----------------------------------------------------------------------------
-bool CalcPlayersOnFriendsList( int iMinFriends )
-{
-	// Got message during connection
-	if ( !g_PR )
-		return false;
-
-	Assert( g_pGameRules->IsMultiplayer() );
-
-	// Do a cheap rejection: check teammate count first to see if we even need to bother checking w/Steam
-	// Subtract 1 for the local player.
-	if ( CalcPlayerCount()-1 < iMinFriends )
-		return false;
-
-	// determine local player team
-	int iLocalPlayerIndex =  GetLocalPlayerIndex();
-
-	#ifndef NO_STEAM
-		if ( !steamapicontext->SteamFriends() || !steamapicontext->SteamUtils() || !g_pGameRules->IsMultiplayer() )
-	#endif
-
-	return false;
-
-	// Loop through the players
-	int iTotalFriends = 0;
-	for( int iPlayerIndex = 1 ; iPlayerIndex <= MAX_PLAYERS; iPlayerIndex++ )
+	//-----------------------------------------------------------------------------
+	// Purpose: Returns the whether all of the local player's team mates are
+	//			on her friends list, and if there are at least the specified # of
+	//			teammates.  Involves cross-process calls to Steam so this is mildly
+	//			expensive, don't call this every frame.
+	//-----------------------------------------------------------------------------
+	bool CalcPlayersOnFriendsList( int iMinFriends )
 	{
-		// find all players who are on the local player's team
-		if( ( iPlayerIndex != iLocalPlayerIndex ) && ( g_PR->IsConnected( iPlayerIndex ) ) )
+		// Got message during connection
+		if ( !g_PR )
+			return false;
+
+		Assert( g_pGameRules->IsMultiplayer() );
+
+		// Do a cheap rejection: check teammate count first to see if we even need to bother checking w/Steam
+		// Subtract 1 for the local player.
+		if ( CalcPlayerCount()-1 < iMinFriends )
+			return false;
+
+		// determine local player team
+		int iLocalPlayerIndex =  GetLocalPlayerIndex();
+
+		#ifndef NO_STEAM
+			if ( !steamapicontext->SteamFriends() || !steamapicontext->SteamUtils() || !g_pGameRules->IsMultiplayer() )
+		#endif
+
+		return false;
+
+		// Loop through the players
+		int iTotalFriends = 0;
+		for( int iPlayerIndex = 1 ; iPlayerIndex <= MAX_PLAYERS; iPlayerIndex++ )
 		{
-			player_info_t pi;
+			// find all players who are on the local player's team
+			if( ( iPlayerIndex != iLocalPlayerIndex ) && ( g_PR->IsConnected( iPlayerIndex ) ) )
+			{
+				player_info_t pi;
 
-			if ( !engine->GetPlayerInfo( iPlayerIndex, &pi ) )
-				continue;
-
-			if ( !pi.friendsID )
-				continue;
-
-			#ifndef NO_STEAM
-				// check and see if they're on the local player's friends list
-				CSteamID steamID( pi.friendsID, 1, steamapicontext->SteamUtils()->GetConnectedUniverse(), k_EAccountTypeIndividual );
-				if ( !steamapicontext->SteamFriends()->HasFriend( steamID, /*k_EFriendFlagImmediate*/ 0x04 ) )
+				if ( !engine->GetPlayerInfo( iPlayerIndex, &pi ) )
 					continue;
-			#endif
 
-			iTotalFriends++;
+				if ( !pi.friendsID )
+					continue;
+
+				#ifndef NO_STEAM
+					// check and see if they're on the local player's friends list
+					CSteamID steamID( pi.friendsID, 1, steamapicontext->SteamUtils()->GetConnectedUniverse(), k_EAccountTypeIndividual );
+					if ( !steamapicontext->SteamFriends()->HasFriend( steamID, /*k_EFriendFlagImmediate*/ 0x04 ) )
+						continue;
+				#endif
+
+				iTotalFriends++;
+			}
 		}
+
+		return (iTotalFriends >= iMinFriends);
 	}
 
-	return (iTotalFriends >= iMinFriends);
-}
+	//-----------------------------------------------------------------------------
+	// Purpose: Returns whether there are a specified # of teammates who all belong
+	//			to same clan as local player. Involves cross-process calls to Steam 
+	//			so this is mildly expensive, don't call this every frame.
+	//-----------------------------------------------------------------------------
+	bool CalcHasNumClanPlayers( int iClanTeammates )
+	{
+		Assert( g_pGameRules->IsMultiplayer() );
 
-//-----------------------------------------------------------------------------
-// Purpose: Returns whether there are a specified # of teammates who all belong
-//			to same clan as local player. Involves cross-process calls to Steam 
-//			so this is mildly expensive, don't call this every frame.
-//-----------------------------------------------------------------------------
-bool CalcHasNumClanPlayers( int iClanTeammates )
-{
-	Assert( g_pGameRules->IsMultiplayer() );
-
-	#ifndef _X360
 		// Do a cheap rejection: check teammate count first to see if we even need to bother checking w/Steam
 		// Subtract 1 for the local player.
 		if ( CalcPlayerCount()-1 < iClanTeammates )
@@ -1115,51 +1090,49 @@ bool CalcHasNumClanPlayers( int iClanTeammates )
 				}
 			}
 		}
-	#endif
 
-	return false;
-}
-
-//-----------------------------------------------------------------------------
-// Purpose: Returns the # of teammates of the local player
-//-----------------------------------------------------------------------------
-int	CalcTeammateCount()
-{
-	Assert( g_pGameRules->IsMultiplayer() );
-
-	// determine local player team
-	int iLocalPlayerIndex =  GetLocalPlayerIndex();
-	int iLocalPlayerTeam = g_PR->GetTeam( iLocalPlayerIndex );
-
-	int iNumTeammates = 0;
-	for( int iPlayerIndex = 1 ; iPlayerIndex <= MAX_PLAYERS; iPlayerIndex++ )
-	{
-		// find all players who are on the local player's team
-		if( ( iPlayerIndex != iLocalPlayerIndex ) && ( g_PR->IsConnected( iPlayerIndex ) ) && ( g_PR->GetTeam( iPlayerIndex ) == iLocalPlayerTeam ) )
-		{
-			iNumTeammates++;
-		}
+		return false;
 	}
-	return iNumTeammates;
-}
 
-//-----------------------------------------------------------------------------
-// Purpose: 
-//-----------------------------------------------------------------------------
-int	CalcPlayerCount()
-{
-	int iCount = 0;
-	for( int iPlayerIndex = 1 ; iPlayerIndex <= MAX_PLAYERS; iPlayerIndex++ )
+	//-----------------------------------------------------------------------------
+	// Purpose: Returns the # of teammates of the local player
+	//-----------------------------------------------------------------------------
+	int	CalcTeammateCount()
 	{
-		// find all players who are on the local player's team
-		if( g_PR->IsConnected( iPlayerIndex ) )
-		{
-			iCount++;
-		}
-	}
-	return iCount;
-}
+		Assert( g_pGameRules->IsMultiplayer() );
 
+		// determine local player team
+		int iLocalPlayerIndex =  GetLocalPlayerIndex();
+		int iLocalPlayerTeam = g_PR->GetTeam( iLocalPlayerIndex );
+
+		int iNumTeammates = 0;
+		for( int iPlayerIndex = 1 ; iPlayerIndex <= MAX_PLAYERS; iPlayerIndex++ )
+		{
+			// find all players who are on the local player's team
+			if( ( iPlayerIndex != iLocalPlayerIndex ) && ( g_PR->IsConnected( iPlayerIndex ) ) && ( g_PR->GetTeam( iPlayerIndex ) == iLocalPlayerTeam ) )
+			{
+				iNumTeammates++;
+			}
+		}
+		return iNumTeammates;
+	}
+
+	//-----------------------------------------------------------------------------
+	// Purpose: 
+	//-----------------------------------------------------------------------------
+	int	CalcPlayerCount()
+	{
+		int iCount = 0;
+		for( int iPlayerIndex = 1 ; iPlayerIndex <= MAX_PLAYERS; iPlayerIndex++ )
+		{
+			// find all players who are on the local player's team
+			if( g_PR->IsConnected( iPlayerIndex ) )
+			{
+				iCount++;
+			}
+		}
+		return iCount;
+	}
 #endif // CLIENT_DLL
 
 //-----------------------------------------------------------------------------

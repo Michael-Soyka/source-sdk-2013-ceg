@@ -13,37 +13,33 @@
 #include "fmtstr.h"
 
 #ifndef SWDS
-#include "iregistry.h"
+	#include "iregistry.h"
 #endif
 
 #include "tier1/utldict.h"
 #include "tier0/icommandline.h"
 #include <time.h>
 #ifdef GAME_DLL
-#include "vehicle_base.h"
+	#include "vehicle_base.h"
 #endif 
 
-#if defined( _X360 )
-#include "xbox/xbox_win32stubs.h"
-#endif
-
 #ifdef CLIENT_DLL
-#include "materialsystem/materialsystem_config.h"
-#include "vgui_int.h"
-#include "igameresources.h"
-#include "voice_status.h"
-extern const ConVar *sv_cheats;
-#if !defined(NO_STEAM)
-#include "steam/steam_api.h"
-#endif
+	#include "materialsystem/materialsystem_config.h"
+	#include "vgui_int.h"
+	#include "igameresources.h"
+	#include "voice_status.h"
+	extern const ConVar *sv_cheats;
+	#if !defined(NO_STEAM)
+		#include "steam/steam_api.h"
+	#endif
 #endif
 
 
 #if !defined(NO_STEAM) && defined(CLIENT_DLL)
-#if defined(TF_CLIENT_DLL) ||  defined(CSTRIKE_DLL)
-#define STEAMWORKS_GAMESTATS_ACTIVE
-#include "steamworks_gamestats.h"
-#endif
+	#if defined(TF_CLIENT_DLL) ||  defined(CSTRIKE_DLL)
+		#define STEAMWORKS_GAMESTATS_ACTIVE
+		#include "steamworks_gamestats.h"
+	#endif
 #endif
 
 // NOTE: This has to be the last file included!

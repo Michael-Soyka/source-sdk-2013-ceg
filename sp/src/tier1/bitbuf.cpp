@@ -18,46 +18,28 @@
 // NOTE: This must be the last file included!!!
 //#include "tier0/memdbgon.h"
 
-#ifdef _X360
-// mandatory ... wary of above comment and isolating, tier0 is built as MT though
-#include "tier0/memdbgon.h"
-#endif
-
 #if _WIN32
-#define FAST_BIT_SCAN 1
-#if _X360
-#define CountLeadingZeros(x) _CountLeadingZeros(x)
-inline unsigned int CountTrailingZeros( unsigned int elem )
-{
-	// this implements CountTrailingZeros() / BitScanForward()
-	unsigned int mask = elem-1;
-	unsigned int comp = ~elem;
-	elem = mask & comp;
-	return (32 - _CountLeadingZeros(elem));
-}
-#else
-#include <intrin.h>
-#pragma intrinsic(_BitScanReverse)
-#pragma intrinsic(_BitScanForward)
+	#define FAST_BIT_SCAN 1
+	#include <intrin.h>
+	#pragma intrinsic(_BitScanReverse)
+	#pragma intrinsic(_BitScanForward)
 
-inline unsigned int CountLeadingZeros(unsigned int x)
-{
-	unsigned long firstBit;
-	if ( _BitScanReverse(&firstBit,x) )
-		return 31 - firstBit;
-	return 32;
-}
-inline unsigned int CountTrailingZeros(unsigned int elem)
-{
-	unsigned long out;
-	if ( _BitScanForward(&out, elem) )
-		return out;
-	return 32;
-}
-
-#endif
+	inline unsigned int CountLeadingZeros(unsigned int x)
+	{
+		unsigned long firstBit;
+		if ( _BitScanReverse(&firstBit,x) )
+			return 31 - firstBit;
+		return 32;
+	}
+	inline unsigned int CountTrailingZeros(unsigned int elem)
+	{
+		unsigned long out;
+		if ( _BitScanForward(&out, elem) )
+			return out;
+		return 32;
+	}
 #else
-#define FAST_BIT_SCAN 0
+	#define FAST_BIT_SCAN 0
 #endif
 
 

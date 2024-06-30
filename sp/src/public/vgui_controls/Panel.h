@@ -31,11 +31,11 @@
 
 // undefine windows function macros that overlap 
 #ifdef PostMessage
-#undef PostMessage
+	#undef PostMessage
 #endif
 
 #ifdef SetCursor
-#undef SetCursor
+	#undef SetCursor
 #endif
 
 class CUtlBuffer;
@@ -43,12 +43,10 @@ class CUtlBuffer;
 namespace vgui
 {
 
-#if !defined( _X360 )
 #define VGUI_USEDRAGDROP 1
-#endif
 
 #if defined( VGUI_USEKEYBINDINGMAPS )
-struct PanelKeyBindingMap;
+	struct PanelKeyBindingMap;
 #endif
 //-----------------------------------------------------------------------------
 // Purpose: Helper functions to construct vgui panels

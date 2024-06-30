@@ -7,10 +7,10 @@
 //=============================================================================//
 
 #ifndef VECTOR_H
-#define VECTOR_H
+	#define VECTOR_H
 
 #ifdef _WIN32
-#pragma once
+	#pragma once
 #endif
 
 #include <math.h>
@@ -22,10 +22,8 @@
 // For rand(). We really need a library!
 #include <stdlib.h>
 
-#ifndef _X360
 // For MMX intrinsics
 #include <xmmintrin.h>
-#endif
 
 #include "tier0/dbg.h"
 #include "tier0/threadtools.h"
@@ -179,41 +177,37 @@ public:
 	operator VectorByValue &()				{ return *((VectorByValue *)(this)); }
 	operator const VectorByValue &() const	{ return *((const VectorByValue *)(this)); }
 
-#ifndef VECTOR_NO_SLOW_OPERATIONS
-	// copy constructors
-//	Vector(const Vector &vOther);
+	#ifndef VECTOR_NO_SLOW_OPERATIONS
+		// copy constructors
+		//	Vector(const Vector &vOther);
 
-	// arithmetic operations
-	Vector	operator-(void) const;
+		// arithmetic operations
+		Vector	operator-(void) const;
 				
-	Vector	operator+(const Vector& v) const;	
-	Vector	operator-(const Vector& v) const;	
-	Vector	operator*(const Vector& v) const;	
-	Vector	operator/(const Vector& v) const;	
-	Vector	operator*(float fl) const;
-	Vector	operator/(float fl) const;			
+		Vector	operator+(const Vector& v) const;	
+		Vector	operator-(const Vector& v) const;	
+		Vector	operator*(const Vector& v) const;	
+		Vector	operator/(const Vector& v) const;	
+		Vector	operator*(float fl) const;
+		Vector	operator/(float fl) const;			
 	
-	// Cross product between two vectors.
-	Vector	Cross(const Vector &vOther) const;		
+		// Cross product between two vectors.
+		Vector	Cross(const Vector &vOther) const;		
 
-	// Returns a vector with the min or max in X, Y, and Z.
-	Vector	Min(const Vector &vOther) const;
-	Vector	Max(const Vector &vOther) const;
+		// Returns a vector with the min or max in X, Y, and Z.
+		Vector	Min(const Vector &vOther) const;
+		Vector	Max(const Vector &vOther) const;
 
-#else
-
-private:
-	// No copy constructors allowed if we're in optimal mode
-	Vector(const Vector& vOther);
-#endif
+	#else
+		private:
+			// No copy constructors allowed if we're in optimal mode
+			Vector(const Vector& vOther);
+	#endif
 };
 
 FORCEINLINE void NetworkVarConstruct( Vector &v ) { v.Zero(); }
 
-
-#define USE_M64S ( ( !defined( _X360 ) ) )
-
-
+#define USE_M64S true
 
 //=========================================================
 // 4D Short Vector (aligned on 8-byte boundary)
@@ -2174,17 +2168,15 @@ inline void AngularImpulseToQAngle( const AngularImpulse &impulse, QAngle &angle
 	angles.z = impulse.x;
 }
 
-#if !defined( _X360 )
-
 FORCEINLINE vec_t InvRSquared( float const *v )
 {
-#if defined(__i386__) || defined(_M_IX86)
-	float sqrlen = v[0]*v[0]+v[1]*v[1]+v[2]*v[2] + 1.0e-10f, result;
-	_mm_store_ss(&result, _mm_rcp_ss( _mm_max_ss( _mm_set_ss(1.0f), _mm_load_ss(&sqrlen) ) ));
-	return result;
-#else
-	return 1.f/fpmax(1.f, v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
-#endif
+	#if defined(__i386__) || defined(_M_IX86)
+		float sqrlen = v[0]*v[0]+v[1]*v[1]+v[2]*v[2] + 1.0e-10f, result;
+		_mm_store_ss(&result, _mm_rcp_ss( _mm_max_ss( _mm_set_ss(1.0f), _mm_load_ss(&sqrlen) ) ));
+		return result;
+	#else
+		return 1.f/fpmax(1.f, v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
+	#endif
 }
 
 FORCEINLINE vec_t InvRSquared( const Vector &v )
@@ -2193,40 +2185,40 @@ FORCEINLINE vec_t InvRSquared( const Vector &v )
 }
 
 #if defined(__i386__) || defined(_M_IX86)
-inline void _SSE_RSqrtInline( float a, float* out )
-{
-	__m128  xx = _mm_load_ss( &a );
-	__m128  xr = _mm_rsqrt_ss( xx );
-	__m128  xt;
-	xt = _mm_mul_ss( xr, xr );
-	xt = _mm_mul_ss( xt, xx );
-	xt = _mm_sub_ss( _mm_set_ss(3.f), xt );
-	xt = _mm_mul_ss( xt, _mm_set_ss(0.5f) );
-	xr = _mm_mul_ss( xr, xt );
-	_mm_store_ss( out, xr );
-}
+	inline void _SSE_RSqrtInline( float a, float* out )
+	{
+		__m128  xx = _mm_load_ss( &a );
+		__m128  xr = _mm_rsqrt_ss( xx );
+		__m128  xt;
+		xt = _mm_mul_ss( xr, xr );
+		xt = _mm_mul_ss( xt, xx );
+		xt = _mm_sub_ss( _mm_set_ss(3.f), xt );
+		xt = _mm_mul_ss( xt, _mm_set_ss(0.5f) );
+		xr = _mm_mul_ss( xr, xt );
+		_mm_store_ss( out, xr );
+	}
 #endif
 
 // FIXME: Change this back to a #define once we get rid of the vec_t version
 FORCEINLINE float VectorNormalize( Vector& vec )
 {
-#ifndef DEBUG // stop crashing my edit-and-continue!
-	#if defined(__i386__) || defined(_M_IX86)
-		#define DO_SSE_OPTIMIZATION
+	#ifndef DEBUG // stop crashing my edit-and-continue!
+		#if defined(__i386__) || defined(_M_IX86)
+			#define DO_SSE_OPTIMIZATION
+		#endif
 	#endif
-#endif
 
-#if defined( DO_SSE_OPTIMIZATION )
-	float sqrlen = vec.LengthSqr() + 1.0e-10f, invlen;
-	_SSE_RSqrtInline(sqrlen, &invlen);
-	vec.x *= invlen;
-	vec.y *= invlen;
-	vec.z *= invlen;
-	return sqrlen * invlen;
-#else
-	extern float (FASTCALL *pfVectorNormalize)(Vector& v);
-	return (*pfVectorNormalize)(vec);
-#endif
+	#if defined( DO_SSE_OPTIMIZATION )
+		float sqrlen = vec.LengthSqr() + 1.0e-10f, invlen;
+		_SSE_RSqrtInline(sqrlen, &invlen);
+		vec.x *= invlen;
+		vec.y *= invlen;
+		vec.z *= invlen;
+		return sqrlen * invlen;
+	#else
+		extern float (FASTCALL *pfVectorNormalize)(Vector& v);
+		return (*pfVectorNormalize)(vec);
+	#endif
 }
 
 // FIXME: Obsolete version of VectorNormalize, once we remove all the friggin float*s
@@ -2239,51 +2231,6 @@ FORCEINLINE void VectorNormalizeFast( Vector &vec )
 {
 	VectorNormalize(vec);
 }
-
-#else
-
-FORCEINLINE float _VMX_InvRSquared( const Vector &v )
-{
-	XMVECTOR xmV = XMVector3ReciprocalLength( XMLoadVector3( v.Base() ) );
-	xmV = XMVector3Dot( xmV, xmV );
-	return xmV.x;
-}
-
-// call directly
-FORCEINLINE float _VMX_VectorNormalize( Vector &vec )
-{
-	float mag = XMVector3Length( XMLoadVector3( vec.Base() ) ).x;
-	float den = 1.f / (mag + FLT_EPSILON );
-	vec.x *= den;
-	vec.y *= den;
-	vec.z *= den;
-	return mag;
-}
-
-#define InvRSquared(x) _VMX_InvRSquared(x)
-
-// FIXME: Change this back to a #define once we get rid of the vec_t version
-FORCEINLINE float VectorNormalize( Vector& v )
-{
-	return _VMX_VectorNormalize( v );
-}
-// FIXME: Obsolete version of VectorNormalize, once we remove all the friggin float*s
-FORCEINLINE float VectorNormalize( float *pV )
-{
-	return _VMX_VectorNormalize(*(reinterpret_cast<Vector*>(pV)));
-}
-
-// call directly
-FORCEINLINE void VectorNormalizeFast( Vector &vec )
-{
-	XMVECTOR xmV = XMVector3LengthEst( XMLoadVector3( vec.Base() ) );
-	float den = 1.f / (xmV.x + FLT_EPSILON);
-	vec.x *= den;
-	vec.y *= den;
-	vec.z *= den;
-}
-
-#endif // _X360
 
 
 inline vec_t Vector::NormalizeInPlace()
