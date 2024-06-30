@@ -2790,6 +2790,24 @@ bool CBaseEntity::FVisible( CBaseEntity *pEntity, int traceMask, CBaseEntity **p
 	{
 		UTIL_TraceLine(vecLookerOrigin, vecTargetOrigin, traceMask, this, COLLISION_GROUP_NONE, &tr);
 	}
+	else
+	{
+		// If we're doing an LOS search, include NPCs.
+		if (traceMask == MASK_BLOCKLOS)
+		{
+			traceMask = MASK_BLOCKLOS_AND_NPCS;
+		}
+
+		// Player sees through nodraw
+		if (IsPlayer())
+		{
+			traceMask &= ~CONTENTS_BLOCKLOS;
+		}
+
+		// Use the custom LOS trace filter
+		CTraceFilterLOS traceFilter(this, COLLISION_GROUP_NONE, pEntity);
+		UTIL_TraceLine(vecLookerOrigin, vecTargetOrigin, traceMask, &traceFilter, &tr);
+	}
 	
 	if (tr.fraction != 1.0 || tr.startsolid )
 	{
