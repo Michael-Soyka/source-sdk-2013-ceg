@@ -245,8 +245,6 @@ void PrecachePointTemplates();
 static ClientPutInServerOverrideFn g_pClientPutInServerOverride = NULL;
 static void UpdateChapterRestrictions( const char *mapname );
 
-static void UpdateRichPresence ( void );
-
 
 #if !defined( _XBOX ) // Don't doubly define this symbol.
 CSharedEdictChangeInfo *g_pSharedChangeInfo = NULL;
@@ -620,10 +618,6 @@ bool CServerGameDLL::DLLInit( CreateInterfaceFn appSystemFactory,
 		return false;
 	if ( (scenefilecache = (ISceneFileCache *)appSystemFactory( SCENE_FILE_CACHE_INTERFACE_VERSION, NULL )) == NULL )
 		return false;
-	if ( IsX360() && (xboxsystem = (IXboxSystem *)appSystemFactory( XBOXSYSTEM_INTERFACE_VERSION, NULL )) == NULL )
-		return false;
-	if ( IsX360() && (matchmaking = (IMatchmaking *)appSystemFactory( VENGINE_MATCHMAKING_VERSION, NULL )) == NULL )
-		return false;
 
 	// If not running dedicated, grab the engine vgui interface
 	if ( !engine->IsDedicatedServer() )
@@ -964,12 +958,6 @@ bool CServerGameDLL::LevelInit( const char *pMapName, char const *pMapEntities, 
 
 	ResetWindspeed();
 	UpdateChapterRestrictions( pMapName );
-
-	if ( IsX360() && !background && (gpGlobals->maxClients == 1) && (g_nCurrentChapterIndex >= 0) )
-	{
-		// Single player games tell xbox live what game & chapter the user is playing
-		UpdateRichPresence();
-	}
 
 	//Tony; parse custom manifest if exists!
 	ParseParticleEffectsMap( pMapName, false );
@@ -2174,112 +2162,12 @@ void UpdateChapterRestrictions( const char *mapname )
 		{
 			// ok we're at a higher chapter, unlock
 			sv_unlockedchapters.SetValue( nNewChapter );
-
-			// HACK: Call up through a better function than this? 7/23/07 - jdw
-			if ( IsX360() )
-			{
-				engine->ServerCommand( "host_writeconfig\n" );
-			}
 		}
 
 		g_nCurrentChapterIndex = nNewChapter;
 	}
 }
 
-//-----------------------------------------------------------------------------
-// Purpose: Update xbox live data for the user's presence
-//-----------------------------------------------------------------------------
-void UpdateRichPresence ( void )
-{
-	// This assumes we're playing a single player game
-	Assert ( gpGlobals->maxClients == 1 );
-
-	// Shouldn't get here unless we're playing a map and we've updated sv_unlockedchapters
-	Assert ( g_nCurrentChapterIndex >= 0 );
-
-	// Get our active mod directory name
-	char modDir[MAX_PATH];
-	if ( UTIL_GetModDir( modDir, sizeof(modDir) ) == false )
-		return;
-
-	// Get presence data based on the game we're playing
-	uint iGameID, iChapterIndex, iChapterID, iGamePresenceID;
-	iGameID = iChapterIndex = iChapterID = iGamePresenceID = 0;
-	if ( Q_stristr( modDir, "hl2" ) )
-	{
-		iGameID			= CONTEXT_GAME_GAME_HALF_LIFE_2;
-		iChapterID		= CONTEXT_CHAPTER_HL2;
-		iChapterIndex	= g_nCurrentChapterIndex - 1;
-		iGamePresenceID = CONTEXT_PRESENCE_HL2_INGAME;
-	}
-	else if ( Q_stristr( modDir, "episodic" ) )
-	{
-		iGameID			= CONTEXT_GAME_GAME_EPISODE_ONE;
-		iChapterID		= CONTEXT_CHAPTER_EP1;
-		iChapterIndex	= g_nCurrentChapterIndex - 1;
-		iGamePresenceID = CONTEXT_PRESENCE_EP1_INGAME;
-	}
-	else if ( Q_stristr( modDir, "ep2" ) )
-	{
-		iGameID			= CONTEXT_GAME_GAME_EPISODE_TWO;
-		iChapterID		= CONTEXT_CHAPTER_EP2;
-		iChapterIndex	= g_nCurrentChapterIndex - 1;
-		iGamePresenceID = CONTEXT_PRESENCE_EP2_INGAME;
-	}
-	else if ( Q_stristr( modDir, "portal" ) )
-	{
-		iGameID			= CONTEXT_GAME_GAME_PORTAL;
-		iChapterID		= CONTEXT_CHAPTER_PORTAL;
-		iChapterIndex	= g_nCurrentChapterIndex - 1;
-		iGamePresenceID = CONTEXT_PRESENCE_PORTAL_INGAME;
-	}
-	else
-	{
-		Warning( "UpdateRichPresence failed in GameInterface. Didn't recognize -game parameter." );
-	}
-
-#if defined( _X360 )
-
-	// Set chapter context based on mapname
-	if ( !xboxsystem->UserSetContext( XBX_GetPrimaryUserId(), iChapterID, iChapterIndex, true ) )
-	{
-		Warning( "GameInterface: UserSetContext failed.\n" );
-	}
-
-	if ( commentary.GetBool() )
-	{
-		// Set presence to show the user is playing developer commentary
-		if ( !xboxsystem->UserSetContext( XBX_GetPrimaryUserId(), X_CONTEXT_PRESENCE, CONTEXT_PRESENCE_COMMENTARY, true ) )
-		{
-			Warning( "GameInterface: UserSetContext failed.\n" );
-		}
-	}
-	else
-	{
-		// Set presence to show the user is in-game
-		if ( !xboxsystem->UserSetContext( XBX_GetPrimaryUserId(), X_CONTEXT_PRESENCE, iGamePresenceID, true ) )
-		{
-			Warning( "GameInterface: UserSetContext failed.\n" );
-		}
-	}
-	
-	// Set which game the user is playing
-	if ( !xboxsystem->UserSetContext( XBX_GetPrimaryUserId(), CONTEXT_GAME, iGameID, true ) )
-	{
-		Warning( "GameInterface: UserSetContext failed.\n" );
-	}
-
-	if ( !xboxsystem->UserSetContext( XBX_GetPrimaryUserId(), X_CONTEXT_GAME_TYPE, X_CONTEXT_GAME_TYPE_STANDARD, true ) )
-	{
-		Warning( "GameInterface: UserSetContext failed.\n" );
-	}
-
-	if ( !xboxsystem->UserSetContext( XBX_GetPrimaryUserId(), X_CONTEXT_GAME_MODE, CONTEXT_GAME_MODE_SINGLEPLAYER, true ) )
-	{
-		Warning( "GameInterface: UserSetContext failed.\n" );
-	}
-#endif
-}
 
 //-----------------------------------------------------------------------------
 // Precaches a vgui screen overlay material
