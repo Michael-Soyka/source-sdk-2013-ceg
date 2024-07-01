@@ -1046,7 +1046,6 @@ bool CalcPlayersOnFriendsList( int iMinFriends )
 
 	// determine local player team
 	int iLocalPlayerIndex =  GetLocalPlayerIndex();
-	uint64 XPlayerUid = 0;
 
 	if ( IsPC() )
 	{
