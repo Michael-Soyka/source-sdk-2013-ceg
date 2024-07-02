@@ -209,15 +209,6 @@ typedef signed char int8;
 //-----------------------------------------------------------------------------
 // Set up platform type defines.
 //-----------------------------------------------------------------------------
-#if defined( PLATFORM_X360 ) || defined( _PS3 )
-	#if !defined( _GAMECONSOLE )
-		#define _GAMECONSOLE
-	#endif
-	#define IsGameConsole()	true
-#else
-	#define IsGameConsole()	false
-#endif
-
 #ifdef PLATFORM_64BITS
 	#define IsPlatform64Bits()	true
 #else
