@@ -33,11 +33,7 @@
 #include "tier1/convar_serverbounded.h"
 #include "cam_thirdperson.h"
 
-#if defined( _X360 )
-#include "xbox/xbox_win32stubs.h"
-#else
 #include "../common/xbox/xboxstubs.h"
-#endif
 
 #ifdef HL2_CLIENT_DLL
 // FIXME: Autoaim support needs to be moved from HL2_DLL to the client dll, so this include should be c_baseplayer.h
@@ -46,6 +42,7 @@
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+
 
 // Control like a joystick
 #define JOY_ABSOLUTE_AXIS	0x00000000		

@@ -145,9 +145,7 @@ static ConVar fog_maxdensity( "fog_maxdensity", "-1", FCVAR_CHEAT );
 // Water-related convars
 //-----------------------------------------------------------------------------
 static ConVar r_debugcheapwater( "r_debugcheapwater", "0", FCVAR_CHEAT );
-#ifndef _X360
 static ConVar r_waterforceexpensive( "r_waterforceexpensive", "0", FCVAR_ARCHIVE );
-#endif
 static ConVar r_waterforcereflectentities( "r_waterforcereflectentities", "0" );
 static ConVar r_WaterDrawRefraction( "r_WaterDrawRefraction", "1", 0, "Enable water refraction" );
 static ConVar r_WaterDrawReflection( "r_WaterDrawReflection", "1", 0, "Enable water reflection" );
@@ -2380,30 +2378,27 @@ void CViewRender::DetermineWaterRenderInfo( const VisibleFogVolumeInfo_t &fogVol
 		return;
 	}
 
-#ifdef _X360
-	bool bForceExpensive = false;
-#else
 	bool bForceExpensive = r_waterforceexpensive.GetBool();
-#endif
+
 	bool bForceReflectEntities = r_waterforcereflectentities.GetBool();
 
-#ifdef PORTAL
-	switch( g_pPortalRender->ShouldForceCheaperWaterLevel() )
-	{
-	case 0: //force cheap water
-		info.m_bCheapWater = true;
-		return;
+	#ifdef PORTAL
+		switch( g_pPortalRender->ShouldForceCheaperWaterLevel() )
+		{
+			case 0: //force cheap water
+				info.m_bCheapWater = true;
+				return;
 
-	case 1: //downgrade level to "simple reflection"
-		bForceExpensive = false;
+			case 1: //downgrade level to "simple reflection"
+				bForceExpensive = false;
 
-	case 2: //downgrade level to "reflect world"
-		bForceReflectEntities = false;
+			case 2: //downgrade level to "reflect world"
+				bForceReflectEntities = false;
 	
-	default:
-		break;
-	};
-#endif
+			default:
+				break;
+		};
+	#endif
 
 	// Determine if the water surface is opaque or not
 	info.m_bOpaqueWater = !pWaterMaterial->IsTranslucent();
@@ -2440,11 +2435,8 @@ void CViewRender::DetermineWaterRenderInfo( const VisibleFogVolumeInfo_t &fogVol
 
 	// Unless expensive water is active, reflections are off.
 	bool bLocalReflection;
-#ifdef _X360
-	if( !r_WaterDrawReflection.GetBool() )
-#else
+
 	if( !bForceExpensive || !r_WaterDrawReflection.GetBool() )
-#endif
 	{
 		bLocalReflection = false;
 	}
@@ -2465,15 +2457,9 @@ void CViewRender::DetermineWaterRenderInfo( const VisibleFogVolumeInfo_t &fogVol
 	// Gary says: I'm reverting this change so that water LOD works on dx9 for ep2.
 
 	// Check if the water is out of the cheap water LOD range; if so, use cheap water
-#ifdef _X360
-	if ( !bForceExpensive && ( bForceCheap || ( fogVolumeInfo.m_flDistanceToWater >= m_flCheapWaterEndDistance ) ) )
-	{
-		return;
-	}
-#else
 	if ( ( (fogVolumeInfo.m_flDistanceToWater >= m_flCheapWaterEndDistance) && !bLocalReflection ) || bForceCheap )
  		return;
-#endif
+
 	// Get the material that is for the water surface that is visible and check to see
 	// what render targets need to be rendered, if any.
 	if ( !r_WaterDrawRefraction.GetBool() )
@@ -4364,10 +4350,6 @@ void CRendering3dView::DrawTranslucentRenderables( bool bInSkybox, bool bShadowD
 		switch ( g_CurrentViewID )
 		{				 
 		case VIEW_MAIN:
-#ifdef _X360
-		case VIEW_INTRO_CAMERA:
-		case VIEW_INTRO_PLAYER:
-#endif
 			UpdateFullScreenDepthTexture();
 			break;
 

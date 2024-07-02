@@ -4,7 +4,7 @@
 //
 //===========================================================================//
 
-#if defined( WIN32 ) && !defined( _X360 )
+#if defined( WIN32 )
 #include <wtypes.h>
 #include <winuser.h>
 #include "xbox/xboxstubs.h"

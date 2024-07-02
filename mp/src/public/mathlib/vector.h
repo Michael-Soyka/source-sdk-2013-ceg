@@ -7,10 +7,10 @@
 //=============================================================================//
 
 #ifndef VECTOR_H
-#define VECTOR_H
+	#define VECTOR_H
 
 #ifdef _WIN32
-#pragma once
+	#pragma once
 #endif
 
 #include <math.h>
@@ -22,16 +22,15 @@
 // For rand(). We really need a library!
 #include <stdlib.h>
 
-#ifndef _X360
 // For MMX intrinsics
 #include <xmmintrin.h>
-#endif
 
 #include "tier0/dbg.h"
 #include "tier0/threadtools.h"
 #include "mathlib/vector2d.h"
 #include "mathlib/math_pfns.h"
 #include "minmax.h"
+
 
 // Uncomment this to add extra Asserts to check for NANs, uninitialized vecs, etc.
 //#define VECTOR_PARANOIA	1

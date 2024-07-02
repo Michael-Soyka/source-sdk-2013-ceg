@@ -108,9 +108,7 @@
 #endif
 #include "vgui/ILocalize.h"
 #include "vgui/IVGui.h"
-#include "ixboxsystem.h"
 #include "ipresence.h"
-#include "engine/imatchmaking.h"
 #include "cdll_bounded_cvars.h"
 #include "matsys_controls/matsyscontrols.h"
 #include "gamestats.h"
@@ -204,19 +202,17 @@ IGameEventManager2 *gameeventmanager = NULL;
 ISoundEmitterSystemBase *soundemitterbase = NULL;
 IInputSystem *inputsystem = NULL;
 ISceneFileCache *scenefilecache = NULL;
-IXboxSystem *xboxsystem = NULL;	// Xbox 360 only
-IMatchmaking *matchmaking = NULL;
 IUploadGameStats *gamestatsuploader = NULL;
 IClientReplayContext *g_pClientReplayContext = NULL;
 #if defined( REPLAY_ENABLED )
-IReplayManager *g_pReplayManager = NULL;
-IReplayMovieManager *g_pReplayMovieManager = NULL;
-IReplayScreenshotManager *g_pReplayScreenshotManager = NULL;
-IReplayPerformanceManager *g_pReplayPerformanceManager = NULL;
-IReplayPerformanceController *g_pReplayPerformanceController = NULL;
-IEngineReplay *g_pEngineReplay = NULL;
-IEngineClientReplay *g_pEngineClientReplay = NULL;
-IReplaySystem *g_pReplay = NULL;
+	IReplayManager *g_pReplayManager = NULL;
+	IReplayMovieManager *g_pReplayMovieManager = NULL;
+	IReplayScreenshotManager *g_pReplayScreenshotManager = NULL;
+	IReplayPerformanceManager *g_pReplayPerformanceManager = NULL;
+	IReplayPerformanceController *g_pReplayPerformanceController = NULL;
+	IEngineReplay *g_pEngineReplay = NULL;
+	IEngineClientReplay *g_pEngineClientReplay = NULL;
+	IReplaySystem *g_pReplay = NULL;
 #endif
 
 IHaptics* haptics = NULL;// NVNT haptics system interface singleton
@@ -1095,13 +1091,11 @@ int CHLClient::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physi
 
 	C_BaseAnimating::InitBoneSetupThreadPool();
 
-#if defined( WIN32 ) && !defined( _X360 )
+#if defined( WIN32 )
 	// NVNT connect haptics sytem
 	ConnectHaptics(appSystemFactory);
 #endif
-#ifndef _X360
 	HookHapticMessages(); // Always hook the messages
-#endif
 
 	return true;
 }
@@ -1234,7 +1228,7 @@ void CHLClient::Shutdown( void )
 
 	gameeventmanager = NULL;
 
-#if defined( WIN32 ) && !defined( _X360 )
+#if defined( WIN32 )
 	// NVNT Disconnect haptics system
 	DisconnectHaptics();
 #endif

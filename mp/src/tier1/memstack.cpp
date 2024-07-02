@@ -58,10 +58,6 @@ bool CMemoryStack::Init( unsigned maxSize, unsigned commitSize, unsigned initial
 {
 	Assert( !m_pBase );
 
-#ifdef _X360
-	m_bPhysical = false;
-#endif
-
 	m_maxSize = maxSize;
 	m_alignment = AlignValue( alignment, 4 );
 
@@ -76,14 +72,10 @@ bool CMemoryStack::Init( unsigned maxSize, unsigned commitSize, unsigned initial
 
 	unsigned pageSize;
 
-#ifndef _X360
 	SYSTEM_INFO sysInfo;
 	GetSystemInfo( &sysInfo );
 	Assert( !( sysInfo.dwPageSize & (sysInfo.dwPageSize-1)) );
 	pageSize = sysInfo.dwPageSize;
-#else
-	pageSize = 64*1024;
-#endif
 
 	if ( m_commitSize == 0 )
 	{
@@ -126,46 +118,17 @@ bool CMemoryStack::Init( unsigned maxSize, unsigned commitSize, unsigned initial
 
 //-------------------------------------
 
-#ifdef _X360
-bool CMemoryStack::InitPhysical( unsigned size, unsigned alignment )
-{
-	m_bPhysical = true;
-
-	m_maxSize = m_commitSize = size;
-	m_alignment = AlignValue( alignment, 4 );
-
-	int flags = PAGE_READWRITE;
-	if ( size >= 16*1024*1024 )
-	{
-		flags |= MEM_16MB_PAGES;
-	}
-	else
-	{
-		flags |= MEM_LARGE_PAGES;
-	}
-	m_pBase = (unsigned char *)XPhysicalAlloc( m_maxSize, MAXULONG_PTR, 4096, flags );
-	Assert( m_pBase );
-	m_pNextAlloc = m_pBase;
-	m_pCommitLimit = m_pBase + m_maxSize;
-	m_pAllocLimit = m_pBase + m_maxSize;
-
-	MemAlloc_RegisterExternalAllocation( CMemoryStack, GetBase(), GetSize() );
-	return ( m_pBase != NULL );
-}
-#endif
-
-//-------------------------------------
-
 void CMemoryStack::Term()
 {
 	FreeAll();
 	if ( m_pBase )
 	{
-#if defined(_WIN32)
-		VirtualFree( m_pBase, 0, MEM_RELEASE );
-#else
-		MemAlloc_FreeAligned( m_pBase );
-#endif
+		#if defined(_WIN32)
+			VirtualFree( m_pBase, 0, MEM_RELEASE );
+		#else
+			MemAlloc_FreeAligned( m_pBase );
+		#endif
+
 		m_pBase = NULL;
 	}
 }
@@ -186,12 +149,6 @@ int CMemoryStack::GetSize()
 
 bool CMemoryStack::CommitTo( byte *pNextAlloc ) RESTRICT
 {
-#ifdef _X360
-	if ( m_bPhysical )
-	{
-		return NULL;
-	}
-#endif
 #if defined(_WIN32)
 	unsigned char *	pNewCommitLimit = AlignValue( pNextAlloc, m_commitSize );
 	unsigned 		commitSize 		= pNewCommitLimit - m_pCommitLimit;

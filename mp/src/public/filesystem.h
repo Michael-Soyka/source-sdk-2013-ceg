@@ -6,7 +6,8 @@
 //===========================================================================//
 
 #ifndef FILESYSTEM_H
-#define FILESYSTEM_H
+	#define FILESYSTEM_H
+
 #pragma once
 
 #include <limits.h>
@@ -22,7 +23,7 @@
 #include "tier1/refcount.h"
 
 #ifdef _WIN32
-#pragma once
+	#pragma once
 #endif
 
 //-----------------------------------------------------------------------------
@@ -40,10 +41,6 @@ typedef void * FileCacheHandle_t;
 typedef int FileFindHandle_t;
 typedef void (*FileSystemLoggingFunc_t)( const char *fileName, const char *accessType );
 typedef int WaitForResourcesHandle_t;
-
-#ifdef _X360
-typedef void* HANDLE;
-#endif
 
 #define USE_CRC_FILE_TRACKING 0
 

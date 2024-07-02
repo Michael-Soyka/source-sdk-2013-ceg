@@ -2944,13 +2944,9 @@ inline void CIndexBuilder::FastIndex2( unsigned short nIndex1, unsigned short nI
 {
 	Assert( m_pIndices );
 	Assert( m_nCurrentIndex < m_nMaxIndexCount - 1 );
-//	Assert( ( (int)( &m_pIndices[m_nCurrentIndex] ) & 0x3 ) == 0 );
+	//Assert( ( (int)( &m_pIndices[m_nCurrentIndex] ) & 0x3 ) == 0 );
 
-#ifndef _X360
 	unsigned int nIndices = ( (unsigned int)nIndex1 + m_nIndexOffset ) | ( ( (unsigned int)nIndex2 + m_nIndexOffset ) << 16 );
-#else
-	unsigned int nIndices = ( (unsigned int)nIndex2 + m_nIndexOffset ) | ( ( (unsigned int)nIndex1 + m_nIndexOffset ) << 16 );
-#endif
 
 	*(int*)( &m_pIndices[m_nCurrentIndex] ) = nIndices;
 	m_nCurrentIndex += m_nIndexSize + m_nIndexSize;

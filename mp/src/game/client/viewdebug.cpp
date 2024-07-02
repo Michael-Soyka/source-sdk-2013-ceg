@@ -15,9 +15,9 @@
 #include "materialsystem/imaterialvar.h"
 
 #ifdef PORTAL
-//#include "C_Portal_Player.h"
-#include "portal_render_targets.h"
-#include "PortalRender.h"
+	//#include "C_Portal_Player.h"
+	#include "portal_render_targets.h"
+	#include "PortalRender.h"
 #endif
 
 //-----------------------------------------------------------------------------
@@ -35,9 +35,6 @@ static ConVar mat_yuv( "mat_yuv", "0", FCVAR_CHEAT );
 static ConVar cl_overdraw_test( "cl_overdraw_test", "0", FCVAR_CHEAT | FCVAR_NEVER_AS_STRING );
 static ConVar mat_drawTexture( "mat_drawTexture", "", 0, "Enable debug view texture" );
 static ConVar mat_drawTextureScale( "mat_drawTextureScale", "1.0", 0, "Debug view texture scale" );
-#ifdef _X360
-static ConVar mat_drawColorRamp( "mat_drawColorRamp", "0", 0, "Draw color test pattern (0=Off, 1=[0..255], 2=[0..127]" );
-#endif
 
 //-----------------------------------------------------------------------------
 // debugging
@@ -607,13 +604,6 @@ void CDebugViewRender::Draw2DDebuggingInfo( const CViewSetup &view )
 	{		
 		OverlayShowTexture( pDrawTexture, mat_drawTextureScale.GetFloat() );
 	}
-
-#ifdef _X360
-	if ( mat_drawColorRamp.GetBool() )
-	{
-		OverlayColorRamp( mat_drawColorRamp.GetInt() == 2 );
-	}
-#endif
 
 	if ( r_flashlightdrawdepth.GetBool() )
 	{

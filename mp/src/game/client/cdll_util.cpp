@@ -1189,11 +1189,7 @@ void UTIL_BoundToWorldSize( Vector *pVecPos )
 	}
 }
 
-#ifdef _X360
-	#define MAP_KEY_FILE_DIR	"cfg"
-#else
-	#define MAP_KEY_FILE_DIR	"media"
-#endif
+#define MAP_KEY_FILE_DIR	"media"
 
 //-----------------------------------------------------------------------------
 // Purpose: Returns the filename to count map loads in

@@ -4,11 +4,11 @@
 //
 //=============================================================================
 
-#if !defined( XBOXSTUBS_H ) && !defined( _X360 )
+#if !defined( XBOXSTUBS_H )
 #define XBOXSTUBS_H
 
 #ifdef _WIN32
-#pragma once
+	#pragma once
 #endif
 
 #include "tier0/platform.h"

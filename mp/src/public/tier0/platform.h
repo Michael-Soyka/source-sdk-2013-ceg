@@ -78,34 +78,33 @@
 #endif
 
 #ifdef _WIN32
+
 	#define IsLinux() false
 	#define IsOSX() false
 	#define IsPosix() false
 	#define PLATFORM_WINDOWS 1 // Windows PC or Xbox 360
-	#ifndef _X360
-		#define IsWindows() true
-		#define IS_WINDOWS_PC
-		#define PLATFORM_WINDOWS_PC 1 // Windows PC
-		#ifdef _WIN64
-			#define IsPlatformWindowsPC64() true
-			#define IsPlatformWindowsPC32() false
-			#define PLATFORM_WINDOWS_PC64 1
-		#else
-			#define IsPlatformWindowsPC64() false
-			#define IsPlatformWindowsPC32() true
-			#define PLATFORM_WINDOWS_PC32 1
-		#endif
+	#define IsWindows() true
+	#define IS_WINDOWS_PC
+	#define PLATFORM_WINDOWS_PC 1 // Windows PC
+	#ifdef _WIN64
+		#define IsPlatformWindowsPC64() true
+		#define IsPlatformWindowsPC32() false
+		#define PLATFORM_WINDOWS_PC64 1
 	#else
-		#define PLATFORM_X360 1
-		#define IsWindows() false
+		#define IsPlatformWindowsPC64() false
+		#define IsPlatformWindowsPC32() true
+		#define PLATFORM_WINDOWS_PC32 1
 	#endif
+
 	// Adding IsPlatformOpenGL() to help fix a bunch of code that was using IsPosix() to infer if the DX->GL translation layer was being used.
 	#if defined( DX_TO_GL_ABSTRACTION )
 		#define IsPlatformOpenGL() true
 	#else
 		#define IsPlatformOpenGL() false
 	#endif
+
 #elif defined(POSIX)
+
 	#define IsWindows() false
 	#if defined( LINUX )
 		#define IsLinux() true
@@ -121,6 +120,7 @@
 	
 	#define IsPosix() true
 	#define IsPlatformOpenGL() true
+
 #else
 	#error
 #endif
@@ -271,18 +271,13 @@ typedef unsigned int		uint;
 // Note: NJS: This is not enabled for regular PC, due to not knowing the implications of exporting a class with no no vtable.
 //       It's probable that this shouldn't be an issue, but an experiment should be done to verify this.
 //
-#ifndef _X360
 #define abstract_class class
-#else
-#define abstract_class class NO_VTABLE
-#endif
 
 
 // MSVC CRT uses 0x7fff while gcc uses MAX_INT, leading to mismatches between platforms
 // As a result, we pick the least common denominator here.  This should be used anywhere
 // you might typically want to use RAND_MAX
 #define VALVE_RAND_MAX 0x7fff
-
 
 
 /*
@@ -754,8 +749,6 @@ typedef void *HANDLE;
 //-----------------------------------------------------------------------------
 // fsel
 //-----------------------------------------------------------------------------
-#ifndef _X360
-
 static FORCEINLINE float fsel(float fComparand, float fValGE, float fLT)
 {
 	return fComparand >= 0 ? fValGE : fLT;
@@ -764,14 +757,6 @@ static FORCEINLINE double fsel(double fComparand, double fValGE, double fLT)
 {
 	return fComparand >= 0 ? fValGE : fLT;
 }
-
-#else
-
-// __fsel(double fComparand, double fValGE, double fLT) == fComparand >= 0 ? fValGE : fLT
-// this is much faster than if ( aFloat > 0 ) { x = .. }
-#define fsel __fsel
-
-#endif
 
 
 //-----------------------------------------------------------------------------

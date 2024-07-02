@@ -64,16 +64,7 @@ typedef __m128 u32x4;
 #endif
 
 // The FLTX4 type is a fltx4 used as a parameter to a function.
-// On the 360, the best way to do this is pass-by-copy on the registers.
-// On the PC, the best way is to pass by const reference. 
-// The compiler will sometimes, but not always, replace a pass-by-const-ref
-// with a pass-in-reg on the 360; to avoid this confusion, you can
-// explicitly use a FLTX4 as the parameter type.
-#ifdef _X360
-typedef __vector4 FLTX4;
-#else
 typedef const fltx4 & FLTX4;
-#endif
 
 // A 16-byte aligned int32 datastructure
 // (for use when writing out fltx4's as SIGNED
@@ -130,11 +121,6 @@ FORCEINLINE void TestVPUFlags() {}
 
 
 // useful constants in SIMD packed float format:
-// (note: some of these aren't stored on the 360, 
-// but are manufactured directly in one or two 
-// instructions, saving a load and possible L2
-// miss.)
-#ifndef _X360
 extern const fltx4 Four_Zeros;									// 0 0 0 0
 extern const fltx4 Four_Ones;									// 1 1 1 1
 extern const fltx4 Four_Twos;									// 2 2 2 2
@@ -149,22 +135,6 @@ extern const fltx4 Four_2ToThe23s;								// (1<<23)..
 extern const fltx4 Four_2ToThe24s;								// (1<<24)..
 extern const fltx4 Four_Origin;									// 0 0 0 1 (origin point, like vr0 on the PS2)
 extern const fltx4 Four_NegativeOnes;							// -1 -1 -1 -1 
-#else
-#define			   Four_Zeros XMVectorZero()					// 0 0 0 0
-#define			   Four_Ones XMVectorSplatOne()					// 1 1 1 1
-extern const fltx4 Four_Twos;									// 2 2 2 2
-extern const fltx4 Four_Threes;									// 3 3 3 3
-extern const fltx4 Four_Fours;									// guess.
-extern const fltx4 Four_Point225s;								// .225 .225 .225 .225
-extern const fltx4 Four_PointFives;								// .5 .5 .5 .5
-extern const fltx4 Four_Epsilons;								// FLT_EPSILON FLT_EPSILON FLT_EPSILON FLT_EPSILON
-extern const fltx4 Four_2ToThe21s;								// (1<<21)..
-extern const fltx4 Four_2ToThe22s;								// (1<<22)..
-extern const fltx4 Four_2ToThe23s;								// (1<<23)..
-extern const fltx4 Four_2ToThe24s;								// (1<<24)..
-extern const fltx4 Four_Origin;									// 0 0 0 1 (origin point, like vr0 on the PS2)
-extern const fltx4 Four_NegativeOnes;							// -1 -1 -1 -1 
-#endif
 extern const fltx4 Four_FLT_MAX;								// FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX
 extern const fltx4 Four_Negative_FLT_MAX;						// -FLT_MAX, -FLT_MAX, -FLT_MAX, -FLT_MAX
 extern const fltx4 g_SIMD_0123;									// 0 1 2 3 as float
@@ -189,13 +159,7 @@ extern const int32 ALIGN16 g_SIMD_SkipTailMask[4][4] ALIGN16_POST;
 // intrinsic under the hood -- you need to prefetch at different
 // intervals between x86 and PPC, for example, and that is
 // a higher level code change. 
-// On the other hand, I'm tired of typing #ifdef _X360
-// all over the place, so this is just a nop on Intel, PS3.
-#ifdef _X360
-#define PREFETCH360(address, offset) __dcbt(offset,address)
-#else
 #define PREFETCH360(x,y) // nothing
-#endif
 
 #if USE_STDC_FOR_SIMD
 
