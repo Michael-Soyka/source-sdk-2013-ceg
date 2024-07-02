@@ -36,12 +36,6 @@ public:
 	FORCEINLINE void SetPixelMemory( ImageFormat format, void* pMemory, int stride );
 	FORCEINLINE void *GetPixelMemory() { return m_pBase; }
 
-	// this is no longer used:
-#if 0 // defined( _X360 )
-	// set after SetPixelMemory() 
-	FORCEINLINE void ActivateByteSwapping( bool bSwap );
-#endif
-
 	FORCEINLINE void Seek( int x, int y );
 	FORCEINLINE void* SkipBytes( int n );
 	FORCEINLINE void SkipPixels( int n );	
@@ -142,9 +136,6 @@ FORCEINLINE_PIXEL void CPixelWriter::SetPixelMemory( ImageFormat format, void* p
 		break;
 
 	case IMAGE_FORMAT_RGBA8888:
-#if defined( _X360 )
-	case IMAGE_FORMAT_LINEAR_RGBA8888:
-#endif
 		m_Size = 4;
 		m_RShift = 0;
 		m_GShift = 8;
@@ -157,9 +148,6 @@ FORCEINLINE_PIXEL void CPixelWriter::SetPixelMemory( ImageFormat format, void* p
 		break;
 
 	case IMAGE_FORMAT_BGRA8888: // NOTE! : the low order bits are first in this naming convention.
-#if defined( _X360 )
-	case IMAGE_FORMAT_LINEAR_BGRA8888:
-#endif
 		m_Size = 4;
 		m_RShift = 16;
 		m_GShift = 8;
@@ -172,9 +160,6 @@ FORCEINLINE_PIXEL void CPixelWriter::SetPixelMemory( ImageFormat format, void* p
 		break;
 
 	case IMAGE_FORMAT_BGRX8888:
-#if defined( _X360 )
-	case IMAGE_FORMAT_LINEAR_BGRX8888:
-#endif
 		m_Size = 4;
 		m_RShift = 16;
 		m_GShift = 8;
@@ -260,10 +245,7 @@ FORCEINLINE_PIXEL void CPixelWriter::SetPixelMemory( ImageFormat format, void* p
 		m_AMask = 0xFF;
 		break;
 
-	case IMAGE_FORMAT_RGBA16161616:
-#if defined( _X360 )
-	case IMAGE_FORMAT_LINEAR_RGBA16161616:
-#endif		
+	case IMAGE_FORMAT_RGBA16161616:	
 		m_Size = 8;
 
 		m_RShift = 0;
@@ -312,38 +294,6 @@ FORCEINLINE_PIXEL void CPixelWriter::SetPixelMemory( ImageFormat format, void* p
 		break;
 	}
 }
-
-#if 0 // defined( _X360 )
-FORCEINLINE void CPixelWriter::ActivateByteSwapping( bool bSwap )
-{
-	// X360TBD: Who is trying to use this?
-	// Purposely not hooked up because PixelWriter has been ported to read/write native pixels only
-	Assert( 0 );
-
-	if ( bSwap && !(m_nFlags & PIXELWRITER_SWAPBYTES ) )
-	{
-		m_nFlags |= PIXELWRITER_SWAPBYTES;
-
-		// only tested with 4 byte formats
-		Assert( m_Size == 4 );
-	}
-	else if ( !bSwap && (m_nFlags & PIXELWRITER_SWAPBYTES ) )
-	{
-		m_nFlags &= ~PIXELWRITER_SWAPBYTES;
-	}
-	else
-	{
-		// same state
-		return;
-	}
-
-	// swap the shifts
-	m_RShift = 24-m_RShift;
-	m_GShift = 24-m_GShift;
-	m_BShift = 24-m_BShift;
-	m_AShift = 24-m_AShift;
-}
-#endif
 
 //-----------------------------------------------------------------------------
 // Sets where we're writing to

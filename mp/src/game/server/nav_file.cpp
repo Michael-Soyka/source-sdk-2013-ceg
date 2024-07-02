@@ -169,17 +169,10 @@ void PlaceDirectory::Load( CUtlBuffer &fileBuffer, int version )
 	}
 }
 
-
-
 PlaceDirectory placeDirectory;
 
-#if defined( _X360 )
-	#define FORMAT_BSPFILE "maps\\%s.360.bsp"
-	#define FORMAT_NAVFILE "maps\\%s.360.nav"
-#else
-	#define FORMAT_BSPFILE "maps\\%s.bsp"
-	#define FORMAT_NAVFILE "maps\\%s.nav"
-#endif
+#define FORMAT_BSPFILE "maps\\%s.bsp"
+#define FORMAT_NAVFILE "maps\\%s.nav"
 
 //--------------------------------------------------------------------------------------------------------------
 /**

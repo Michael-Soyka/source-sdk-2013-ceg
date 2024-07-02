@@ -411,9 +411,6 @@ DBG_INTERFACE struct SDL_Window * GetAssertDialogParent();
 // #pragma MESSAGE("Some message")
 #define MESSAGE(msg) message(__FILE__ "(" V_STRINGIFY(__LINE__) "): " msg)
 
-
-#if !defined( _X360 ) || !defined( _RETAIL )
-
 /* These are always compiled in */
 DBG_INTERFACE void Msg( PRINTF_FORMAT_STRING const tchar* pMsg, ... ) FMTFUNCTION( 1, 2 );
 DBG_INTERFACE void DMsg( const tchar *pGroupName, int level, PRINTF_FORMAT_STRING const tchar *pMsg, ... ) FMTFUNCTION( 3, 4 );
@@ -428,29 +425,12 @@ DBG_INTERFACE void DLog( const tchar *pGroupName, int level, PRINTF_FORMAT_STRIN
 DBG_INTERFACE void LogV( PRINTF_FORMAT_STRING const tchar *pMsg, va_list arglist );
 
 #ifdef Error
-// p4.cpp does a #define Error Warning and in that case the Error prototype needs to
-// be consistent with the Warning prototype.
-DBG_INTERFACE void Error( PRINTF_FORMAT_STRING const tchar *pMsg, ... ) FMTFUNCTION( 1, 2 );
+	// p4.cpp does a #define Error Warning and in that case the Error prototype needs to
+	// be consistent with the Warning prototype.
+	DBG_INTERFACE void Error( PRINTF_FORMAT_STRING const tchar *pMsg, ... ) FMTFUNCTION( 1, 2 );
 #else
-DBG_INTERFACE void NORETURN Error( PRINTF_FORMAT_STRING const tchar *pMsg, ... ) FMTFUNCTION( 1, 2 );
-DBG_INTERFACE void NORETURN ErrorV( PRINTF_FORMAT_STRING const tchar *pMsg, va_list arglist );
-
-#endif
-
-#else
-
-inline void Msg( ... ) {}
-inline void DMsg( ... ) {}
-inline void MsgV( PRINTF_FORMAT_STRING const tchar *pMsg, va_list arglist ) {}
-inline void Warning( PRINTF_FORMAT_STRING const tchar *pMsg, ... ) {}
-inline void WarningV( PRINTF_FORMAT_STRING const tchar *pMsg, va_list arglist ) {}
-inline void DWarning( ... ) {}
-inline void Log( ... ) {}
-inline void DLog( ... ) {}
-inline void LogV( PRINTF_FORMAT_STRING const tchar *pMsg, va_list arglist ) {}
-inline void Error( ... ) {}
-inline void ErrorV( PRINTF_FORMAT_STRING const tchar *pMsg, va_list arglist ) {}
-
+	DBG_INTERFACE void NORETURN Error( PRINTF_FORMAT_STRING const tchar *pMsg, ... ) FMTFUNCTION( 1, 2 );
+	DBG_INTERFACE void NORETURN ErrorV( PRINTF_FORMAT_STRING const tchar *pMsg, va_list arglist );
 #endif
 
 // You can use this macro like a runtime assert macro.
@@ -466,7 +446,7 @@ inline void ErrorV( PRINTF_FORMAT_STRING const tchar *pMsg, va_list arglist ) {}
 		Error msg;			\
 	}
 
-#if !defined( _X360 ) || !defined( _RETAIL )
+#if !defined( _RETAIL )
 
 /* A couple of super-common dynamic spew messages, here for convenience */
 /* These looked at the "developer" group */
@@ -689,7 +669,7 @@ private:
 //
 // Purpose: Embed debug info in each file.
 //
-#if defined( _WIN32 ) && !defined( _X360 )
+#if defined( _WIN32 ) 
 
 	#ifdef _DEBUG
 		#pragma comment(compiler)

@@ -72,13 +72,8 @@ bool ToolFramework_SetupEngineMicrophone( Vector &origin, QAngle &angles );
 extern ConVar default_fov;
 extern bool g_bRenderingScreenshot;
 
-#if !defined( _X360 )
-	#define SAVEGAME_SCREENSHOT_WIDTH	180
-	#define SAVEGAME_SCREENSHOT_HEIGHT	100
-#else
-	#define SAVEGAME_SCREENSHOT_WIDTH	128
-	#define SAVEGAME_SCREENSHOT_HEIGHT	128
-#endif
+#define SAVEGAME_SCREENSHOT_WIDTH	180
+#define SAVEGAME_SCREENSHOT_HEIGHT	100
 
 extern ConVar sensitivity;
 
@@ -1279,10 +1274,8 @@ void CViewRender::Render( vrect_t *rect )
 	g_pClientMode->PostRender();
 	engine->EngineStats_EndFrame();
 
-#if !defined( _X360 )
 	// Stop stubbing the material system so we can see the budget panel
 	matStub.End();
-#endif
 
 
 	// Draw all of the UI stuff "fullscreen"

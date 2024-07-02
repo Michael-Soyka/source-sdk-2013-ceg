@@ -26,11 +26,11 @@
 #include <vgui/ISurface.h>
 #include <vgui/ILocalize.h>
 #include "view.h"
-#include "ixboxsystem.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
-																						
+
+
 ConVar localplayer_visionflags( "localplayer_visionflags", "0", FCVAR_DEVELOPMENTONLY );
 																						
 //-----------------------------------------------------------------------------

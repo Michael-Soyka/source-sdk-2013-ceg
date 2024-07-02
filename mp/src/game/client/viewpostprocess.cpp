@@ -2183,10 +2183,6 @@ void DoEnginePostProcessing( int x, int y, int w, int h, bool bFlashlightIsOn, b
 		DumpTGAofRenderTarget( w, h, "BackBuffer" );
 	}
 
-#if defined( _X360 )
-	pRenderContext->PushVertexShaderGPRAllocation( 16 ); //max out pixel shader threads
-#endif
-
 	if ( r_queued_post_processing.GetInt() )
 	{
 		ICallQueue *pCallQueue = pRenderContext->GetCallQueue();
@@ -2226,7 +2222,6 @@ void DoEnginePostProcessing( int x, int y, int w, int h, bool bFlashlightIsOn, b
 				DoPreBloomTonemapping( pRenderContext, x, y, w, h, flAutoExposureMin, flAutoExposureMax );
 			}
 
-			// Set software-AA on by default for 360
 			if ( mat_software_aa_strength.GetFloat() == -1.0f )
 			{
 				mat_software_aa_strength.SetValue(0.0f);
@@ -2547,10 +2542,6 @@ void DoEnginePostProcessing( int x, int y, int w, int h, bool bFlashlightIsOn, b
 			break;
 		}
 	}
-
-#if defined( _X360 )
-	pRenderContext->PopVertexShaderGPRAllocation();
-#endif
 }
 
 // Motion Blur Material Proxy =========================================================================================

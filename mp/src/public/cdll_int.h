@@ -5,9 +5,10 @@
 //===========================================================================//
 
 #ifndef CDLL_INT_H
-#define CDLL_INT_H
+	#define CDLL_INT_H
+
 #ifdef _WIN32
-#pragma once
+	#pragma once
 #endif
 
 #include "basetypes.h"
@@ -20,9 +21,8 @@
 #include "inputsystem/ButtonCode.h"
 #include "modes.h"
 
-#if !defined( _X360 )
 #include "xbox/xboxstubs.h"
-#endif
+
 
 //-----------------------------------------------------------------------------
 // forward declarations

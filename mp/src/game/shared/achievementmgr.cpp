@@ -915,15 +915,6 @@ bool CAchievementMgr::CheckAchievementsEnabled()
 		return false;
 	}
 
-#if defined( _X360 )
-	uint state = XUserGetSigninState( XBX_GetPrimaryUserId() );
-	if ( state == eXUserSigninState_NotSignedIn )
-	{
-		Msg( "Achievements disabled: not signed in to XBox user account.\n" );
-		return false;
-	}
-#endif
-
 	// can't be in commentary mode, user is invincible
 	if ( IsInCommentaryMode() )
 	{

@@ -14,42 +14,18 @@
 #include "tier0/threadtools.h"
 #include "tier0/vprof_telemetry.h"
 
-// VProf is enabled by default in all configurations -except- X360 Retail.
-#if !( defined( _X360 ) && defined( _CERT ) )
-#define VPROF_ENABLED
-#endif
-
-#if defined(_X360) && defined(VPROF_ENABLED)
-#include "tier0/pmc360.h"
-#ifndef USE_PIX
-#define VPROF_UNDO_PIX
-#undef _PIX_H_
-#undef PIXBeginNamedEvent
-#undef PIXEndNamedEvent
-#undef PIXSetMarker
-#undef PIXNameThread
-#define USE_PIX
-#include <pix.h>
-#undef USE_PIX
-#else
-#include <pix.h>
-#endif
+// VProf is enabled by default in all configurations
+#ifndef _CERT
+	#define VPROF_ENABLED
 #endif
 
 #ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable:4251)
+	#pragma warning(push)
+	#pragma warning(disable:4251)
 #endif
 
 // enable this to get detailed nodes beneath budget
 // #define VPROF_LEVEL 1
-
-// enable this to use pix (360 only)
-// #define VPROF_PIX 1
-
-#if defined(VPROF_PIX)
-#pragma comment( lib, "Xapilibi" )
-#endif
 
 //-----------------------------------------------------------------------------
 //
@@ -918,8 +894,8 @@ inline void CVProfile::EnterScope( const tchar *pszName, int detailLevel, const 
 		}
 		m_pBudgetGroups[m_pCurNode->GetBudgetGroupID()].m_BudgetFlags |= budgetFlags;
 
-#if defined( _DEBUG ) && !defined( _X360 )
-		// 360 doesn't want this to allow tier0 debug/release .def files to match
+#if defined( _DEBUG )
+		
 		if ( bAssertAccounted )
 		{
 			// FIXME
@@ -929,10 +905,6 @@ inline void CVProfile::EnterScope( const tchar *pszName, int detailLevel, const 
 		m_pCurNode->EnterScope();
 		m_fAtRoot = false;
 	}
-#if defined(_X360) && defined(VPROF_PIX)
-	if ( m_pCurNode->GetBudgetGroupID() != VPROF_BUDGET_GROUP_ID_UNACCOUNTED )
-		PIXBeginNamedEvent( 0, pszName );
-#endif
 }
 
 inline void CVProfile::EnterScope( const tchar *pszName, int detailLevel, const tchar *pBudgetGroupName, bool bAssertAccounted )
@@ -944,13 +916,6 @@ inline void CVProfile::EnterScope( const tchar *pszName, int detailLevel, const 
 
 inline void CVProfile::ExitScope()
 {
-#if defined(_X360) && defined(VPROF_PIX)
-#ifdef PIXBeginNamedEvent
-#error
-#endif
-	if ( m_pCurNode->GetBudgetGroupID() != VPROF_BUDGET_GROUP_ID_UNACCOUNTED )
-		PIXEndNamedEvent();
-#endif
 	if ( ( !m_fAtRoot || m_enabled != 0 ) && InTargetThread() )
 	{
 		// Only account for vprof stuff on the primary thread.

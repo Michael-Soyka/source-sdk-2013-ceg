@@ -6,20 +6,19 @@
 //===========================================================================//
 
 #if defined( WIN32 )
-#include <windows.h>
+	#include <windows.h>
 #endif
+
 #include "tier0/platform.h"
 #include "tier0/vcrmode.h"
 #include "iregistry.h"
 #include "tier0/dbg.h"
 #include "tier1/strtools.h"
 #include <stdio.h>
-#if defined( _X360 )
-#include "xbox/xbox_win32stubs.h"
-#endif
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+
 
 //-----------------------------------------------------------------------------
 // Purpose: Exposes registry interface to rest of launcher

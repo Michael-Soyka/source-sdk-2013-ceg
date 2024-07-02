@@ -57,8 +57,8 @@ const int32 ALIGN16 g_SIMD_SkipTailMask[4][4] ALIGN16_POST =
 };
 
 
-	// FUNCTIONS
-	// NOTE: WHY YOU **DO NOT** WANT TO PUT FUNCTIONS HERE
+// FUNCTIONS
+// NOTE: WHY YOU **DO NOT** WANT TO PUT FUNCTIONS HERE
 // Generally speaking, you want to make sure SIMD math functions
 // are inlined, because that gives the compiler much more latitude
 // in instruction scheduling. It's not that the overhead of calling

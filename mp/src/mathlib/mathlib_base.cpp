@@ -21,19 +21,21 @@
 
 #include "mathlib/mathlib.h"
 #include "mathlib/vector.h"
-#if !defined( _X360 )
+
 #include "mathlib/amd3dx.h"
+
 #ifndef OSX
-#include "3dnow.h"
+	#include "3dnow.h"
 #endif
+
 #include "sse.h"
-#endif
 
 #include "mathlib/ssemath.h"
 #include "mathlib/ssequaternion.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+
 
 bool s_bMathlibInitialized = false;
 
@@ -3271,7 +3273,6 @@ void MathLib_Init( float gamma, float texGamma, float brightness, int overbright
 
 	// FIXME: Hook SSE into VectorAligned + Vector4DAligned
 
-#if !defined( _X360 )
 	// Grab the processor information:
 	const CPUInformation& pi = *GetCPUInformation();
 
@@ -3353,7 +3354,6 @@ void MathLib_Init( float gamma, float texGamma, float brightness, int overbright
 	{
 		s_bSSE2Enabled = false;
 	}
-#endif // !_X360
 
 	s_bMathlibInitialized = true;
 

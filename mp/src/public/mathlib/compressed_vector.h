@@ -27,9 +27,7 @@
 
 #include "mathlib/mathlib.h"
 
-#if defined( _X360 )
-#pragma bitfield_order( push, lsb_to_msb )
-#endif
+
 //=========================================================
 // fit a 3D vector into 32 bits
 //=========================================================
@@ -600,9 +598,4 @@ inline void Vector2d32::Init( vec_t ix, vec_t iy )
 	y.SetFloat(iy);
 }
 
-#if defined( _X360 )
-#pragma bitfield_order( pop )
 #endif
-
-#endif
-

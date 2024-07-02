@@ -131,9 +131,9 @@ typedef unsigned char BYTE;
 typedef unsigned char byte;
 typedef unsigned short word;
 #ifdef _WIN32
-typedef wchar_t ucs2; // under windows wchar_t is ucs2
+	typedef wchar_t ucs2; // under windows wchar_t is ucs2
 #else
-typedef unsigned short ucs2;
+	typedef unsigned short ucs2;
 #endif
 
 enum ThreeState_t
@@ -146,11 +146,11 @@ enum ThreeState_t
 typedef float vec_t;
 
 #if defined(__GNUC__)
-#define fpmin __builtin_fminf
-#define fpmax __builtin_fmaxf
-#elif !defined(_X360)
-#define fpmin min
-#define fpmax max
+	#define fpmin __builtin_fminf
+	#define fpmax __builtin_fmaxf
+#else
+	#define fpmin min
+	#define fpmax max
 #endif
 
 

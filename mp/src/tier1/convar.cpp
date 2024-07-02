@@ -19,17 +19,14 @@
 #include "icvar.h"
 #include "tier0/dbg.h"
 #include "Color.h"
-#if defined( _X360 )
-#include "xbox/xbox_console.h"
-#endif
+
 #include "tier0/memdbgon.h"
 
+
 #ifndef NDEBUG
-// Comment this out when we release.
-#define ALLOW_DEVELOPMENT_CVARS
+	// Comment this out when we release.
+	#define ALLOW_DEVELOPMENT_CVARS
 #endif
-
-
 
 //-----------------------------------------------------------------------------
 // Statically constructed list of ConCommandBases, 
