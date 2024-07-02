@@ -6998,17 +6998,18 @@ void CBasePlayer::GetAutoaimVector( autoaim_params_t &params )
 
 	Vector	forward;
 
-	if( IsInAVehicle() && g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
-	{
-		m_vecAutoAim = angles;
-		AngleVectors( EyeAngles() + m_vecAutoAim, &forward );
-	}
-	else
-	{
+	//TODO: Adapt console auto-aim for PC
+	//if( IsInAVehicle() && g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
+	//{
+	//	m_vecAutoAim = angles;
+	//	AngleVectors( EyeAngles() + m_vecAutoAim, &forward );
+	//}
+	//else
+	//{
 		// always use non-sticky autoaim
 		m_vecAutoAim = angles * 0.9f;
 		AngleVectors( EyeAngles() + m_Local.m_vecPunchAngle + m_vecAutoAim, &forward );
-	}
+	//}
 
 	params.m_vecAutoAimDir = forward;
 }
@@ -7204,7 +7205,7 @@ QAngle CBasePlayer::AutoaimDeflection( Vector &vecSrc, autoaim_params_t &params 
 					// Be lenient if the player is looking down, though. 30 degrees through 90 degrees of pitch.
 					// (90 degrees is looking down at player's own 'feet'. Looking straight ahead is 0 degrees pitch.
 					// This was done for XBox to make it easier to fight headcrabs around the player's feet.
-					if( eyeAngles.x < 30.0f || eyeAngles.x > 90.0f || g_pGameRules->GetAutoAimMode() != AUTOAIM_ON_CONSOLE )
+					if( eyeAngles.x < 30.0f || eyeAngles.x > 90.0f /* //TODO: Adapt console auto-aim for PC/ || g_pGameRules->GetAutoAimMode() != AUTOAIM_ON_CONSOLE */ )
 					{
 						continue;
 					}

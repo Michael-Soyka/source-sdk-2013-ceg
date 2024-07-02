@@ -388,10 +388,11 @@ Vector CBaseHeadcrab::BodyTarget( const Vector &posSrc, bool bNoisy )
 //-----------------------------------------------------------------------------
 float CBaseHeadcrab::GetAutoAimRadius()
 { 
-	if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
-	{
-		return 24.0f;
-	}
+	//TODO: Adapt console auto-aim for PC
+	//if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
+	//{
+	//	return 24.0f;
+	//}
 
 	return 12.0f;
 }

@@ -2951,9 +2951,10 @@ Class_T CBaseEntity::Classify ( void )
 
 float CBaseEntity::GetAutoAimRadius()
 {
-	if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
-		return 48.0f;
-	else
+	//TODO: Adapt console auto-aim for PC
+	//if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
+	//	return 48.0f;
+	//else
 		return 24.0f;
 }
 
