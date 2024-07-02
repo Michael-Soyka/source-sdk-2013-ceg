@@ -13,6 +13,7 @@
 
 #include "tier0/platform.h"
 
+
 //  Content creation/open flags
 #define XCONTENTFLAG_NONE                           0x00
 #define XCONTENTFLAG_CREATENEW                      0x00

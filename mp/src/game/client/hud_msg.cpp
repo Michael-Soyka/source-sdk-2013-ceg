@@ -19,8 +19,8 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
-/// USER-DEFINED SERVER MESSAGE HANDLERS
 
+/// USER-DEFINED SERVER MESSAGE HANDLERS
 void CHud::MsgFunc_ResetHUD( bf_read &msg )
 {
 	ResetHUD();
@@ -37,12 +37,12 @@ void CHud::ResetHUD()
 	}
 
 	g_pClientMode->GetViewportAnimationController()->RunAllAnimationsToCompletion();
-#ifndef _XBOX
+
 	// reset sensitivity
 	m_flMouseSensitivity = 0;
 	m_flMouseSensitivityFactor = 0;
-#endif
 }
+
 
 //-----------------------------------------------------------------------------
 // Purpose: 

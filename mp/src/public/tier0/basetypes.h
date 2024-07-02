@@ -14,7 +14,7 @@
 #include "tier0/valve_off.h"
 
 #ifdef _WIN32
-#pragma once
+	#pragma once
 #endif
 
 
@@ -26,25 +26,14 @@
 
 #include "protected_things.h"
 
-// There's a different version of this file in the xbox codeline
-// so the PC version built in the xbox branch includes things like 
-// tickrate changes.
-#include "xbox_codeline_defines.h"
-
-#ifdef IN_XBOX_CODELINE
-#define XBOX_CODELINE_ONLY()
-#else
-#define XBOX_CODELINE_ONLY() Error_Compiling_Code_Only_Valid_in_Xbox_Codeline
-#endif
-
 // stdio.h
 #ifndef NULL
-#define NULL 0
+	#define NULL 0
 #endif
 
 
 #ifdef POSIX
-#include <stdint.h>
+	#include <stdint.h>
 #endif
 
 #define ExecuteNTimes( nTimes, x )	\

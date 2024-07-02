@@ -7,7 +7,6 @@
 
 #include "cbase.h"
 
-#ifndef _XBOX
 #include "tier0/icommandline.h"
 #include "igamesystem.h"
 #include "filesystem.h"
@@ -25,6 +24,7 @@
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+
 
 static bool g_bTracingVsCommentaryNodes = false;
 static const char *s_pCommentaryUpdateViewThink = "CommentaryUpdateViewThink";
@@ -1640,12 +1640,3 @@ void CCommentaryAuto::InputMultiplayerSpawned( inputdata_t &inputdata )
 {
 	m_OnCommentaryMultiplayerSpawn.FireOutput( NULL, this );
 }
-
-#else
-
-bool IsInCommentaryMode( void )
-{
-	return false;
-}
-
-#endif
