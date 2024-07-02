@@ -173,11 +173,10 @@ int	CalcPlayerCount();
 int	CalcTeammateCount();
 #endif // CLIENT
 
-class IMatchmaking;
 extern ConVar	cc_achievement_debug;
-extern IMatchmaking *matchmaking;
 
 #ifdef CLIENT_DLL
-void MsgFunc_AchievementEvent( bf_read &msg );
+	void MsgFunc_AchievementEvent( bf_read &msg );
 #endif // CLIENT_DLL
+
 #endif // ACHIEVEMENTMGR_H

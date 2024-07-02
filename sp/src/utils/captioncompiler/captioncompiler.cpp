@@ -25,13 +25,12 @@
 
 #include "tier0/fasttimer.h"
 
+
 using namespace vgui;
 
 // #define TESTING 1
 
-
 bool uselogfile = false;
-bool bX360 = false;
 
 struct AnalysisData
 {
@@ -495,9 +494,6 @@ int CCompileCaptionsApp::Main()
 				break;
 			case 'v':
 				verbose = true;
-				break;
-			case 'x':
-				bX360 = true;
 				break;
 			case 'g': // -game
 				++i;

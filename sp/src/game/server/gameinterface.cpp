@@ -179,7 +179,6 @@ ISoundEmitterSystemBase *soundemitterbase = NULL;
 IServerPluginHelpers *serverpluginhelpers = NULL;
 IServerEngineTools *serverenginetools = NULL;
 ISceneFileCache *scenefilecache = NULL;
-IMatchmaking *matchmaking = NULL;
 #if defined( REPLAY_ENABLED )
 	IReplaySystem *g_pReplay = NULL;
 	IServerReplayContext *g_pReplayServerContext = NULL;

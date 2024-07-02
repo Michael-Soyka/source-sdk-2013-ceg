@@ -14,6 +14,7 @@
 #include "tier0/threadtools.h"
 #include "tier0/vprof_telemetry.h"
 
+
 // VProf is enabled by default in all configurations
 #ifndef _CERT
 	#define VPROF_ENABLED
@@ -26,13 +27,6 @@
 
 // enable this to get detailed nodes beneath budget
 // #define VPROF_LEVEL 1
-
-// enable this to use pix (360 only)
-// #define VPROF_PIX 1
-
-#if defined(VPROF_PIX)
-	#pragma comment( lib, "Xapilibi" )
-#endif
 
 //-----------------------------------------------------------------------------
 //

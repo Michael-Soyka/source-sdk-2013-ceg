@@ -1154,11 +1154,11 @@ PLATFORM_INTERFACE void* Plat_SimpleLog( const tchar* file, int line );
 // Returns true if debugger attached, false otherwise
 //-----------------------------------------------------------------------------
 #if defined(_WIN32) || defined(LINUX) || defined(OSX)
-PLATFORM_INTERFACE bool Plat_IsInDebugSession( bool bForceRecheck = false );
-PLATFORM_INTERFACE void Plat_DebugString( const char * );
+	PLATFORM_INTERFACE bool Plat_IsInDebugSession( bool bForceRecheck = false );
+	PLATFORM_INTERFACE void Plat_DebugString( const char * );
 #else
-inline bool Plat_IsInDebugSession( bool bForceRecheck = false ) { return false; }
-#define Plat_DebugString(s) ((void)0)
+	inline bool Plat_IsInDebugSession( bool bForceRecheck = false ) { return false; }
+	#define Plat_DebugString(s) ((void)0)
 #endif
 
 //-----------------------------------------------------------------------------
@@ -1170,10 +1170,6 @@ PLATFORM_INTERFACE bool Is64BitOS();
 //-----------------------------------------------------------------------------
 // XBOX Components valid in PC compilation space
 //-----------------------------------------------------------------------------
-
-#define XBOX_DVD_SECTORSIZE			2048
-#define XBOX_DVD_ECC_SIZE			32768 // driver reads in quantum ECC blocks
-#define XBOX_HDD_SECTORSIZE			512
 
 // Custom windows messages for Xbox input
 #define WM_XREMOTECOMMAND					(WM_USER + 100)
@@ -1200,22 +1196,6 @@ PLATFORM_INTERFACE bool Is64BitOS();
 #define WM_XMP_STATECHANGED					(WM_USER + 121)
 #define WM_XMP_PLAYBACKBEHAVIORCHANGED		(WM_USER + 122)
 #define WM_XMP_PLAYBACKCONTROLLERCHANGED	(WM_USER + 123)
-
-// flat view, 6 hw threads
-#define XBOX_PROCESSOR_0			( 1<<0 )
-#define XBOX_PROCESSOR_1			( 1<<1 )
-#define XBOX_PROCESSOR_2			( 1<<2 )
-#define XBOX_PROCESSOR_3			( 1<<3 )
-#define XBOX_PROCESSOR_4			( 1<<4 )
-#define XBOX_PROCESSOR_5			( 1<<5 )
-
-// core view, 3 cores with 2 hw threads each
-#define XBOX_CORE_0_HWTHREAD_0		XBOX_PROCESSOR_0
-#define XBOX_CORE_0_HWTHREAD_1		XBOX_PROCESSOR_1
-#define XBOX_CORE_1_HWTHREAD_0		XBOX_PROCESSOR_2
-#define XBOX_CORE_1_HWTHREAD_1		XBOX_PROCESSOR_3
-#define XBOX_CORE_2_HWTHREAD_0		XBOX_PROCESSOR_4
-#define XBOX_CORE_2_HWTHREAD_1		XBOX_PROCESSOR_5
 
 //-----------------------------------------------------------------------------
 // Include additional dependant header components.

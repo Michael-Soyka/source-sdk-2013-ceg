@@ -348,17 +348,6 @@ void DestroyVTFTexture( IVTFTexture *pTexture );
 //-----------------------------------------------------------------------------
 int VTFFileHeaderSize( int nMajorVersion = -1, int nMinorVersion = -1 );
 
-//-----------------------------------------------------------------------------
-// 360 Conversion
-//-----------------------------------------------------------------------------
-typedef bool (*CompressFunc_t)( CUtlBuffer &inputBuffer, CUtlBuffer &outputBuffer );
-bool ConvertVTFTo360Format( const char *pDebugName, CUtlBuffer &sourceBuf, CUtlBuffer &targetBuf, CompressFunc_t pCompressFunc );
-
-//-----------------------------------------------------------------------------
-// 360 Preload
-//-----------------------------------------------------------------------------
-bool GetVTFPreload360Data( const char *pDebugName, CUtlBuffer &fileBufferIn, CUtlBuffer &preloadBufferOut );
-
 #include "mathlib/vector.h"
 
 #endif // VTF_FILE_FORMAT_ONLY
@@ -540,9 +529,6 @@ struct TextureLODControlSettings_t
 	// (1<<(m_ResolutionClamp-1)), etc.
 	uint8 m_ResolutionClampX;
 	uint8 m_ResolutionClampY;
-
-	uint8 m_ResolutionClampX_360;
-	uint8 m_ResolutionClampY_360;
 };
 
 // Extended flags and settings:

@@ -2217,7 +2217,6 @@ void DoEnginePostProcessing( int x, int y, int w, int h, bool bFlashlightIsOn, b
 				DoPreBloomTonemapping( pRenderContext, x, y, w, h, flAutoExposureMin, flAutoExposureMax );
 			}
 
-			// Set software-AA on by default for 360
 			if ( mat_software_aa_strength.GetFloat() == -1.0f )
 			{
 				mat_software_aa_strength.SetValue(0.0f);
