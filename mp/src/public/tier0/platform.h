@@ -7,18 +7,18 @@
 //===========================================================================//
 
 #ifndef PLATFORM_H
-#define PLATFORM_H
+	#define PLATFORM_H
 
 #if defined(__x86_64__) || defined(_WIN64)
-#define PLATFORM_64BITS 1
+	#define PLATFORM_64BITS 1
 #endif
 
 #if defined(__GCC__) || defined(__GNUC__)
-#define COMPILER_GCC 1
+	#define COMPILER_GCC 1
 #endif
 
 #ifdef __clang__
-#define COMPILER_CLANG 1
+	#define COMPILER_CLANG 1
 #endif
 
 #if defined( _X360 )
@@ -43,28 +43,28 @@
 #include "tier0/valve_off.h"
 
 #ifdef _DEBUG
-#if !defined( PLAT_COMPILE_TIME_ASSERT )
-#define PLAT_COMPILE_TIME_ASSERT( pred )	switch(0){case 0:case pred:;}
-#endif
+	#if !defined( PLAT_COMPILE_TIME_ASSERT )
+		#define PLAT_COMPILE_TIME_ASSERT( pred )	switch(0){case 0:case pred:;}
+	#endif
 #else
-#if !defined( PLAT_COMPILE_TIME_ASSERT )
-#define PLAT_COMPILE_TIME_ASSERT( pred )
-#endif
+	#if !defined( PLAT_COMPILE_TIME_ASSERT )
+		#define PLAT_COMPILE_TIME_ASSERT( pred )
+	#endif
 #endif
 
 #ifdef _WIN32
-#pragma once
+	#pragma once
 #endif
 
 // feature enables
 #define NEW_SOFTWARE_LIGHTING
 
 #ifdef POSIX
-// need this for _alloca
-#include <alloca.h>
-#include <unistd.h>
-#include <signal.h>
-#include <time.h>
+	// need this for _alloca
+	#include <alloca.h>
+	#include <unistd.h>
+	#include <signal.h>
+	#include <time.h>
 #endif
 
 #include <malloc.h>
@@ -76,22 +76,18 @@
 #include "tier0/valve_minmax_on.h"	// GCC 4.2.2 headers screw up our min/max defs.
 
 #ifdef _RETAIL
-#define IsRetail() true
+	#define IsRetail() true
 #else
-#define IsRetail() false
+	#define IsRetail() false
 #endif
 
 #ifdef _DEBUG
-#define IsRelease() false
-#define IsDebug() true
+	#define IsRelease() false
+	#define IsDebug() true
 #else
-#define IsRelease() true
-#define IsDebug() false
+	#define IsRelease() true
+	#define IsDebug() false
 #endif
-
-// Deprecating, infavor of IsX360() which will revert to IsXbox()
-// after confidence of xbox 1 code flush
-#define IsXbox()	false
 
 #ifdef _WIN32
 	#define IsLinux() false
