@@ -623,9 +623,6 @@ public:
 	template< class S >
 	void		PostMessageToAllSiblingsOfType( KeyValues *msg, float delaySeconds = 0.0f );
 
-	void		SetConsoleStylePanel( bool bConsoleStyle );
-	bool		IsConsoleStylePanel() const;
-
 	void		SetParentNeedsCursorMoveEvents( bool bNeedsEvents ) { m_bParentNeedsCursorMoveEvents = bNeedsEvents; }
 	bool		ParentNeedsCursorMoveEvents() const { return m_bParentNeedsCursorMoveEvents; }
 
@@ -880,7 +877,6 @@ private:
 	bool			m_bIsDMXSerialized : 1; // Is this a DMX panel?
 	bool			m_bUseSchemeColors : 1; // Should we use colors from the scheme?
 	bool			m_bIsSilent : 1; // should this panel PostActionSignals?
-	bool			m_bIsConsoleStylePanel : 1;
 	bool			m_bParentNeedsCursorMoveEvents : 1;
 
 	// Sibling pinning
