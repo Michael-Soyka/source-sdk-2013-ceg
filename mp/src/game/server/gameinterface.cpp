@@ -802,8 +802,6 @@ void CServerGameDLL::DLLShutdown( void )
 bool CServerGameDLL::ReplayInit( CreateInterfaceFn fnReplayFactory )
 {
 #if defined( REPLAY_ENABLED )
-	if ( !IsPC() )
-		return false;
 	if ( (g_pReplay = ( IReplaySystem *)fnReplayFactory( REPLAY_INTERFACE_VERSION, NULL )) == NULL )
 		return false;
 	if ( (g_pReplayServerContext = g_pReplay->SV_GetContext()) == NULL )

@@ -132,11 +132,9 @@ void UpdateFullScreenDepthTexture( void )
 		pMaterial->IncrementReferenceCount();
 		IMaterialVar *BaseTextureVar = pMaterial->FindVar( "$basetexture", NULL, false );
 		IMaterialVar *pDepthInAlpha = NULL;
-		if( IsPC() )
-		{
-			pDepthInAlpha = pMaterial->FindVar( "$ALPHADEPTH", NULL, false );
-			pDepthInAlpha->SetIntValue( 1 );
-		}
+
+		pDepthInAlpha = pMaterial->FindVar( "$ALPHADEPTH", NULL, false );
+		pDepthInAlpha->SetIntValue( 1 );
 		
 		BaseTextureVar->SetTextureValue( pDepthTex );
 

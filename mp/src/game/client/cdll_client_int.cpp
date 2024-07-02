@@ -946,9 +946,9 @@ int CHLClient::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physi
 #endif
 
 #if defined( REPLAY_ENABLED )
-	if ( IsPC() && (g_pEngineReplay = (IEngineReplay *)appSystemFactory( ENGINE_REPLAY_INTERFACE_VERSION, NULL )) == NULL )
+	if ( ( g_pEngineReplay = (IEngineReplay *)appSystemFactory( ENGINE_REPLAY_INTERFACE_VERSION, NULL ) ) == NULL )
 		return false;
-	if ( IsPC() && (g_pEngineClientReplay = (IEngineClientReplay *)appSystemFactory( ENGINE_REPLAY_CLIENT_INTERFACE_VERSION, NULL )) == NULL )
+	if ( ( g_pEngineClientReplay = (IEngineClientReplay *)appSystemFactory( ENGINE_REPLAY_CLIENT_INTERFACE_VERSION, NULL ) ) == NULL )
 		return false;
 #endif
 
@@ -1110,37 +1110,35 @@ int CHLClient::Init( CreateInterfaceFn appSystemFactory, CreateInterfaceFn physi
 
 bool CHLClient::ReplayInit( CreateInterfaceFn fnReplayFactory )
 {
-#if defined( REPLAY_ENABLED )
-	if ( !IsPC() )
-		return false;
-	if ( (g_pReplay = (IReplaySystem *)fnReplayFactory( REPLAY_INTERFACE_VERSION, NULL ) ) == NULL )
-		return false;
-	if ( (g_pClientReplayContext = g_pReplay->CL_GetContext()) == NULL )
-		return false;
+	#if defined( REPLAY_ENABLED )
+		if ( (g_pReplay = (IReplaySystem *)fnReplayFactory( REPLAY_INTERFACE_VERSION, NULL ) ) == NULL )
+			return false;
+		if ( (g_pClientReplayContext = g_pReplay->CL_GetContext()) == NULL )
+			return false;
 
-	return true;
-#else
-	return false;
-#endif
+		return true;
+	#else
+		return false;
+	#endif
 }
 
 bool CHLClient::ReplayPostInit()
 {
-#if defined( REPLAY_ENABLED )
-	if ( ( g_pReplayManager = g_pClientReplayContext->GetReplayManager() ) == NULL )
+	#if defined( REPLAY_ENABLED )
+		if ( ( g_pReplayManager = g_pClientReplayContext->GetReplayManager() ) == NULL )
+			return false;
+		if ( ( g_pReplayScreenshotManager = g_pClientReplayContext->GetScreenshotManager() ) == NULL )
+			return false;
+		if ( ( g_pReplayPerformanceManager = g_pClientReplayContext->GetPerformanceManager() ) == NULL )
+			return false;
+		if ( ( g_pReplayPerformanceController = g_pClientReplayContext->GetPerformanceController() ) == NULL )
+			return false;
+		if ( ( g_pReplayMovieManager = g_pClientReplayContext->GetMovieManager() ) == NULL )
+			return false;
+		return true;
+	#else
 		return false;
-	if ( ( g_pReplayScreenshotManager = g_pClientReplayContext->GetScreenshotManager() ) == NULL )
-		return false;
-	if ( ( g_pReplayPerformanceManager = g_pClientReplayContext->GetPerformanceManager() ) == NULL )
-		return false;
-	if ( ( g_pReplayPerformanceController = g_pClientReplayContext->GetPerformanceController() ) == NULL )
-		return false;
-	if ( ( g_pReplayMovieManager = g_pClientReplayContext->GetMovieManager() ) == NULL )
-		return false;
-	return true;
-#else
-	return false;
-#endif
+	#endif
 }
 
 //-----------------------------------------------------------------------------

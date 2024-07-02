@@ -2930,8 +2930,7 @@ void Panel::InternalSetCursor()
 void Panel::OnThink()
 {
 #if defined( VGUI_USEDRAGDROP )
-	if ( IsPC() && 
-		m_pDragDrop->m_bDragEnabled &&
+	if ( m_pDragDrop->m_bDragEnabled &&
 		m_pDragDrop->m_bDragging &&
 		m_pDragDrop->m_bDragStarted )
 	{
@@ -5615,11 +5614,11 @@ void Panel::PreparePanelMap( PanelMap_t *panelMap )
 void Panel::OnDelete()
 {
 #ifdef WIN32
-	Assert( IsPC() && _heapchk() == _HEAPOK );
+	Assert( _heapchk() == _HEAPOK );
 #endif
 	delete this;
 #ifdef WIN32
-	Assert( IsPC() && _heapchk() == _HEAPOK );
+	Assert( _heapchk() == _HEAPOK );
 #endif
 }
 

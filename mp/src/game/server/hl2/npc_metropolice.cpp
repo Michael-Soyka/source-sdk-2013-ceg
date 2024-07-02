@@ -2239,12 +2239,7 @@ Vector CNPC_MetroPolice::ComputeBurstTrajectory( const Vector &shootOrigin )
 
 	VectorNormalize( vecPos );
 
-	// X360BUG: Was causing compiler crash in release, still?
-//	if ( IsPC() )
-	{
-		// Allow for steering towards the target.
-		SteerBurstTowardTarget();
-	}
+	SteerBurstTowardTarget();
 	
 	// Update the burst target position
 	m_vecBurstTargetPos += m_vecBurstDelta;

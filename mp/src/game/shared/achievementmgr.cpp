@@ -602,16 +602,13 @@ bool CAchievementMgr::HasAchieved( const char *pchName )
 //-----------------------------------------------------------------------------
 void CAchievementMgr::DownloadUserData()
 {
-	if ( IsPC() )
-	{
-		#ifndef NO_STEAM
-			if ( steamapicontext->SteamUserStats() )
-			{
-				// request stat download; will get called back at OnUserStatsReceived when complete
-				steamapicontext->SteamUserStats()->RequestCurrentStats();
-			}
-		#endif
-	}
+	#ifndef NO_STEAM
+		if ( steamapicontext->SteamUserStats() )
+		{
+			// request stat download; will get called back at OnUserStatsReceived when complete
+			steamapicontext->SteamUserStats()->RequestCurrentStats();
+		}
+	#endif
 }
 
 const char *COM_GetModDirectory()
@@ -637,9 +634,7 @@ const char *COM_GetModDirectory()
 //-----------------------------------------------------------------------------
 void CAchievementMgr::UploadUserData()
 {
-	if ( IsPC() )
-	{
-#ifndef NO_STEAM
+	#ifndef NO_STEAM
 		if ( steamapicontext->SteamUserStats() )
 		{
 			// Upload current Steam client achievements & stats state to Steam.  Will get called back at OnUserStatsStored when complete.
@@ -647,8 +642,7 @@ void CAchievementMgr::UploadUserData()
 			steamapicontext->SteamUserStats()->StoreStats();
 			m_bSteamDataDirty = false;
 		}
-#endif
-	}
+	#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -851,10 +845,8 @@ void CAchievementMgr::AwardAchievement( int iAchievementID )
 
 	// save state at next good opportunity.  (Don't do it immediately, may hitch at bad time.)
 	SetDirty( true );
-
-	if ( IsPC() )
-	{		
-#ifndef NO_STEAM
+	
+	#ifndef NO_STEAM
 		if ( steamapicontext->SteamUserStats() )
 		{
 			VPROF_BUDGET( "AwardAchievement", VPROF_BUDGETGROUP_STEAM );
@@ -866,8 +858,7 @@ void CAchievementMgr::AwardAchievement( int iAchievementID )
 				m_AchievementsAwarded.AddToTail( iAchievementID );
 			}
 		}
-#endif
-    }
+	#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -930,7 +921,7 @@ extern bool IsInCommentaryMode( void );
 bool CAchievementMgr::CheckAchievementsEnabled()
 {
 	// if PC, Steam must be running and user logged in
-	if ( IsPC() && !LoggedIntoSteam() )
+	if ( !LoggedIntoSteam() )
 	{
 		Msg( "Achievements disabled: Steam not running.\n" );
 		return false;
@@ -1003,12 +994,10 @@ bool CAchievementMgr::CheckAchievementsEnabled()
 	return true;
 #endif
 
-	if ( IsPC() )
+	// Don't award achievements if cheats are turned on.  
+	if ( WereCheatsEverOn() )
 	{
-		// Don't award achievements if cheats are turned on.  
-		if ( WereCheatsEverOn() )
-		{
-#ifndef NO_STEAM
+		#ifndef NO_STEAM
 			// Cheats get turned on automatically if you run with -dev which many people do internally, so allow cheats if developer is turned on and we're not running
 			// on Steam public
 			if ( developer.GetInt() == 0 || !steamapicontext->SteamUtils() || (k_EUniversePublic == steamapicontext->SteamUtils()->GetConnectedUniverse()) )
@@ -1016,8 +1005,7 @@ bool CAchievementMgr::CheckAchievementsEnabled()
 				Msg( "Achievements disabled: cheats turned on in this app session.\n" );
 				return false;
 			}
-#endif
-		}
+		#endif
 	}
 
 	return true;
@@ -1047,19 +1035,11 @@ bool CalcPlayersOnFriendsList( int iMinFriends )
 	// determine local player team
 	int iLocalPlayerIndex =  GetLocalPlayerIndex();
 
-	if ( IsPC() )
-	{
-#ifndef NO_STEAM
+	#ifndef NO_STEAM
 		if ( !steamapicontext->SteamFriends() || !steamapicontext->SteamUtils() || !g_pGameRules->IsMultiplayer() )
-#endif
+	#endif
 			return false;
 
-	}
-	else
-	{
-		// other platforms...?
-		return false;
-	}
 	// Loop through the players
 	int iTotalFriends = 0;
 	for( int iPlayerIndex = 1 ; iPlayerIndex <= MAX_PLAYERS; iPlayerIndex++ )
@@ -1067,20 +1047,20 @@ bool CalcPlayersOnFriendsList( int iMinFriends )
 		// find all players who are on the local player's team
 		if( ( iPlayerIndex != iLocalPlayerIndex ) && ( g_PR->IsConnected( iPlayerIndex ) ) )
 		{
-			if ( IsPC() )
-			{
-				player_info_t pi;
-				if ( !engine->GetPlayerInfo( iPlayerIndex, &pi ) )
-					continue;
-				if ( !pi.friendsID )
-					continue;
-#ifndef NO_STEAM
+			player_info_t pi;
+
+			if ( !engine->GetPlayerInfo( iPlayerIndex, &pi ) )
+				continue;
+
+			if ( !pi.friendsID )
+				continue;
+
+			#ifndef NO_STEAM
 				// check and see if they're on the local player's friends list
 				CSteamID steamID( pi.friendsID, 1, steamapicontext->SteamUtils()->GetConnectedUniverse(), k_EAccountTypeIndividual );
 				if ( !steamapicontext->SteamFriends()->HasFriend( steamID, /*k_EFriendFlagImmediate*/ 0x04 ) )
 					continue;
-#endif
-			}
+			#endif
 
 			iTotalFriends++;
 		}
@@ -1098,9 +1078,7 @@ bool CalcHasNumClanPlayers( int iClanTeammates )
 {
 	Assert( g_pGameRules->IsMultiplayer() );
 
-	if ( IsPC() )
-	{
-#ifndef _X360
+	#ifndef _X360
 		// Do a cheap rejection: check teammate count first to see if we even need to bother checking w/Steam
 		// Subtract 1 for the local player.
 		if ( CalcPlayerCount()-1 < iClanTeammates )
@@ -1136,14 +1114,9 @@ bool CalcHasNumClanPlayers( int iClanTeammates )
 				}
 			}
 		}
-#endif
-		return false;
-	}
-	else 
-	{
-		// other platforms...?
-		return false;
-	}
+	#endif
+
+	return false;
 }
 
 //-----------------------------------------------------------------------------
@@ -1193,12 +1166,6 @@ int	CalcPlayerCount()
 //-----------------------------------------------------------------------------
 void CAchievementMgr::ResetAchievements()
 {
-	if ( !IsPC() )
-	{
-		DevMsg( "Only available on PC\n" );
-		return;
-	}
-
 	if ( !LoggedIntoSteam() )
 	{
 		Msg( "Steam not running, achievements disabled. Cannot reset achievements.\n" );
@@ -1225,12 +1192,6 @@ void CAchievementMgr::ResetAchievements()
 
 void CAchievementMgr::ResetAchievement( int iAchievementID )
 {
-	if ( !IsPC() )
-	{
-		DevMsg( "Only available on PC\n" );
-		return;
-	}
-
 	if ( !LoggedIntoSteam() )
 	{
 		Msg( "Steam not running, achievements disabled. Cannot reset achievements.\n" );
@@ -1260,7 +1221,7 @@ void CAchievementMgr::ResetAchievement( int iAchievementID )
 //-----------------------------------------------------------------------------
 void CAchievementMgr::PrintAchievementStatus()
 {
-	if ( IsPC() && !LoggedIntoSteam() )
+	if ( !LoggedIntoSteam() )
 	{
 		Msg( "Steam not running, achievements disabled. Cannot view or unlock achievements.\n" );
 		return;

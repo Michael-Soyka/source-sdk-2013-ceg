@@ -4714,38 +4714,35 @@ void CBaseEntity::PrecacheModelComponents( int nModelIndex )
 	}
 
 	// sounds
-	if ( IsPC() )
+	const char *name = modelinfo->GetModelName( pModel );
+	if ( !g_ModelSoundsCache.EntryExists( name ) )
 	{
-		const char *name = modelinfo->GetModelName( pModel );
-		if ( !g_ModelSoundsCache.EntryExists( name ) )
-		{
-			char extension[ 8 ];
-			Q_ExtractFileExtension( name, extension, sizeof( extension ) );
+		char extension[ 8 ];
+		Q_ExtractFileExtension( name, extension, sizeof( extension ) );
 
-			if ( Q_stristr( extension, "mdl" ) )
+		if ( Q_stristr( extension, "mdl" ) )
+		{
+			DevMsg( 2, "Late precache of %s, need to rebuild modelsounds.cache\n", name );
+		}
+		else
+		{
+			if ( !extension[ 0 ] )
 			{
-				DevMsg( 2, "Late precache of %s, need to rebuild modelsounds.cache\n", name );
+				Warning( "Precache of %s ambigious (no extension specified)\n", name );
 			}
 			else
 			{
-				if ( !extension[ 0 ] )
-				{
-					Warning( "Precache of %s ambigious (no extension specified)\n", name );
-				}
-				else
-				{
-					Warning( "Late precache of %s (file missing?)\n", name );
-				}
-				return;
+				Warning( "Late precache of %s (file missing?)\n", name );
 			}
+			return;
 		}
+	}
 
-		CModelSoundsCache *entry = g_ModelSoundsCache.Get( name );
-		Assert( entry );
-		if ( entry )
-		{
-			entry->PrecacheSoundList();
-		}
+	CModelSoundsCache *entry = g_ModelSoundsCache.Get( name );
+	Assert( entry );
+	if ( entry )
+	{
+		entry->PrecacheSoundList();
 	}
 
 	// particles

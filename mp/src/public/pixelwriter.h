@@ -403,9 +403,6 @@ FORCEINLINE_PIXEL void CPixelWriter::WritePixelNoAdvanceF( float r, float g, flo
 {
 	Assert( IsUsingFloatFormat() );
 
-	// X360TBD: Not ported
-	Assert( IsPC() );
-
 	if (PIXELWRITER_USING_16BIT_FLOAT_FORMAT & m_nFlags)
 	{
 		float16 fp16[4];
