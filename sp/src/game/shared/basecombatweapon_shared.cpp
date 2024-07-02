@@ -1651,16 +1651,7 @@ void CBaseCombatWeapon::ItemPostFrame( void )
 		}
 		else
 		{
-			// FIXME: This isn't necessarily true if the weapon doesn't have a secondary fire!
-			// For instance, the crossbow doesn't have a 'real' secondary fire, but it still 
-			// stops the crossbow from firing on the 360 if the player chooses to hold down their
-			// zoom button. (sjb) Orange Box 7/25/2007
-#if !defined(CLIENT_DLL)
-			if( !ClassMatches("weapon_crossbow") )
-#endif
-			{
-				bFired = ShouldBlockPrimaryFire();
-			}
+			bFired = ShouldBlockPrimaryFire();
 
 			SecondaryAttack();
 
