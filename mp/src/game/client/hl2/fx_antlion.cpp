@@ -32,7 +32,6 @@ const char *pszAntlionGibs_Medium[NUM_ANTLION_GIBS_MEDIUM] = {
 	"models/gibs/antlion_gib_medium_3.mdl"
 };
 
-// XBox doesn't use the smaller gibs, so don't cache them
 #define	NUM_ANTLION_GIBS_SMALL	3
 const char *pszAntlionGibs_Small[NUM_ANTLION_GIBS_SMALL] = {
 	"models/gibs/antlion_gib_small_1.mdl",

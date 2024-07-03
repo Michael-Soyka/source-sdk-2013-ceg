@@ -297,7 +297,6 @@ void	ReleasePakFileLumps(void);
 
 bool	RepackBSPCallback_LZMA( CUtlBuffer &inputBuffer, CUtlBuffer &outputBuffer );
 bool	RepackBSP( CUtlBuffer &inputBuffer, CUtlBuffer &outputBuffer, CompressFunc_t pCompressFunc, IZip::eCompressionType packfileCompression );
-bool	SwapBSPFile( const char *filename, const char *swapFilename, bool bSwapOnLoad, VTFConvertFunc_t pVTFConvertFunc, VHVFixupFunc_t pVHVFixupFunc, CompressFunc_t pCompressFunc );
 
 bool	GetPakFileLump( const char *pBSPFilename, void **pPakData, int *pPakSize );
 void	WriteLumpToFile( char *filename, int lump );

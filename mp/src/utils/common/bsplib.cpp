@@ -539,6 +539,10 @@ const char *GetLumpName( unsigned int lumpnum )
 // out the HDR lumps for lightmaps, ambient leaves, and lights sources.
 bool g_bHDR = false;
 
+// Set to true to generate Xbox360 native output files
+static bool g_bSwapOnLoad = false;
+static bool g_bSwapOnWrite = false;
+
 VTFConvertFunc_t	g_pVTFConvertFunc;
 VHVFixupFunc_t		g_pVHVFixupFunc;
 CompressFunc_t		g_pCompressFunc;
@@ -564,8 +568,11 @@ CUtlVector<byte> *pdlightdata = &dlightdataLDR;
 CUtlVector<char> dentdata;
 
 int			numleafs;
-
+#if !defined( BSP_USE_LESS_MEMORY )
 dleaf_t		dleafs[MAX_MAP_LEAFS];
+#else
+dleaf_t		*dleafs;
+#endif
 
 CUtlVector<dleafambientindex_t> g_LeafAmbientIndexLDR;
 CUtlVector<dleafambientindex_t> g_LeafAmbientIndexHDR;
@@ -1045,7 +1052,7 @@ void CGameLump::SwapGameLump( GameLumpId_t id, int version, byte *dest, byte *sr
 		// Swap the static prop model dict
 		count = *(int*)src;
 		g_Swap.SwapBufferToTargetEndian( (int*)dest, (int*)src );
-		 
+		count = g_bSwapOnLoad ? *(int*)dest : count;
 		src += sizeof(int);
 		dest += sizeof(int);
 
@@ -1056,7 +1063,7 @@ void CGameLump::SwapGameLump( GameLumpId_t id, int version, byte *dest, byte *sr
 		// Swap the leaf list
 		count = *(int*)src;
 		g_Swap.SwapBufferToTargetEndian( (int*)dest, (int*)src );
-		 
+		count = g_bSwapOnLoad ? *(int*)dest : count;
 		src += sizeof(int);
 		dest += sizeof(int);
 
@@ -1067,7 +1074,7 @@ void CGameLump::SwapGameLump( GameLumpId_t id, int version, byte *dest, byte *sr
 		// Swap the models
 		count = *(int*)src;
 		g_Swap.SwapBufferToTargetEndian( (int*)dest, (int*)src );
-		 
+		count = g_bSwapOnLoad ? *(int*)dest : count;
 		src += sizeof(int);
 		dest += sizeof(int);
 
@@ -1120,7 +1127,7 @@ void CGameLump::SwapGameLump( GameLumpId_t id, int version, byte *dest, byte *sr
 		// Swap the detail prop model dict
 		count = *(int*)src;
 		g_Swap.SwapBufferToTargetEndian( (int*)dest, (int*)src );
-		 
+		count = g_bSwapOnLoad ? *(int*)dest : count;
 		src += sizeof(int);
 		dest += sizeof(int);
 
@@ -1133,7 +1140,7 @@ void CGameLump::SwapGameLump( GameLumpId_t id, int version, byte *dest, byte *sr
 			// Swap the detail sprite dict
 			count = *(int*)src;
 			g_Swap.SwapBufferToTargetEndian( (int*)dest, (int*)src );
-			 
+			count = g_bSwapOnLoad ? *(int*)dest : count;
 			src += sizeof(int);
 			dest += sizeof(int);
 
@@ -1150,7 +1157,7 @@ void CGameLump::SwapGameLump( GameLumpId_t id, int version, byte *dest, byte *sr
 			// Swap the models
 			count = *(int*)src;
 			g_Swap.SwapBufferToTargetEndian( (int*)dest, (int*)src );
-			 
+			count = g_bSwapOnLoad ? *(int*)dest : count;
 			src += sizeof(int);
 			dest += sizeof(int);
 
@@ -1170,7 +1177,7 @@ void CGameLump::SwapGameLump( GameLumpId_t id, int version, byte *dest, byte *sr
 		// Swap the LDR light styles
 		count = *(int*)src;
 		g_Swap.SwapBufferToTargetEndian( (int*)dest, (int*)src );
-		 
+		count = g_bSwapOnLoad ? *(int*)dest : count;
 		src += sizeof(int);
 		dest += sizeof(int);
 
@@ -1183,7 +1190,7 @@ void CGameLump::SwapGameLump( GameLumpId_t id, int version, byte *dest, byte *sr
 		// Swap the HDR light styles
 		count = *(int*)src;
 		g_Swap.SwapBufferToTargetEndian( (int*)dest, (int*)src );
-		 
+		count = g_bSwapOnLoad ? *(int*)dest : count;
 		src += sizeof(int);
 		dest += sizeof(int);
 
@@ -1217,13 +1224,28 @@ void CGameLump::ParseGameLump( dheader_t* pHeader )
 	{
 		// Read dictionary...
 		dgamelumpheader_t* pGameLumpHeader = (dgamelumpheader_t*)((byte *)pHeader + ofs);
-
+		if ( g_bSwapOnLoad )
+		{
+			g_Swap.SwapFieldsToTargetEndian( pGameLumpHeader );
+		}
 		dgamelump_t* pGameLump = (dgamelump_t*)(pGameLumpHeader + 1);
 		for (int i = 0; i < pGameLumpHeader->lumpCount; ++i )
 		{
+			if ( g_bSwapOnLoad )
+			{
+				g_Swap.SwapFieldsToTargetEndian( &pGameLump[i] );
+			}
+
 			int length = pGameLump[i].filelen;
 			GameLumpHandle_t lump = g_GameLumps.CreateGameLump( pGameLump[i].id, length, pGameLump[i].flags, pGameLump[i].version );
-			memcpy( g_GameLumps.GetGameLump(lump), (byte *)pHeader + pGameLump[i].fileofs, length );
+			if ( g_bSwapOnLoad )
+			{
+				SwapGameLump( pGameLump[i].id, pGameLump[i].version, (byte*)g_GameLumps.GetGameLump(lump), (byte *)pHeader + pGameLump[i].fileofs, length );
+			}
+			else
+			{
+				memcpy( g_GameLumps.GetGameLump(lump), (byte *)pHeader + pGameLump[i].fileofs, length );
+			}
 		}
 	}
 }
@@ -1298,7 +1320,10 @@ static void AddGameLumps( )
 	for( h = g_GameLumps.FirstGameLump(); h != g_GameLumps.InvalidGameLump(); h = g_GameLumps.NextGameLump( h ) )
 	{
 		unsigned int lumpsize = g_GameLumps.GameLumpSize(h);
-
+		if ( g_bSwapOnWrite )
+		{
+			g_GameLumps.SwapGameLump( g_GameLumps.GetGameLumpId(h), g_GameLumps.GetGameLumpVersion(h), (byte*)g_GameLumps.GetGameLump(h), (byte*)g_GameLumps.GetGameLump(h), lumpsize );
+		}
 		SafeWrite( g_hBSPFile, g_GameLumps.GetGameLump(h), lumpsize );
 	}
 
@@ -1362,6 +1387,10 @@ static void UnserializeOcclusionLumpV2( CUtlBuffer &buf )
 	nCount = buf.GetInt();
 	if ( nCount )
 	{
+		if ( g_bSwapOnLoad )
+		{
+			g_Swap.SwapBufferToTargetEndian( (int*)buf.PeekGet(), (int*)buf.PeekGet(), nCount );
+		}
 		g_OccluderVertexIndices.SetCount( nCount );
 		buf.Get( g_OccluderVertexIndices.Base(), nCount * sizeof(g_OccluderVertexIndices[0]) );
 	}
@@ -1382,7 +1411,7 @@ static void LoadOcclusionLump()
 	ofs = g_pBSPHeader->lumps[LUMP_OCCLUSION].fileofs;
 	
 	CUtlBuffer buf( (byte *)g_pBSPHeader + ofs, length, CUtlBuffer::READ_ONLY );
-	//buf.ActivateByteSwapping( g_bSwapOnLoad );
+	buf.ActivateByteSwapping( g_bSwapOnLoad );
 	switch ( g_pBSPHeader->lumps[LUMP_OCCLUSION].version )
 	{
 	case 2:
@@ -1552,8 +1581,14 @@ static void SwapPhyscollideLump( byte *pDestBase, byte *pSrcBase, unsigned int &
 
 	do
 	{
-		Q_memcpy( pSrcAligned, pSrc, sizeof(dphysmodel_t) );
-
+		if ( g_bSwapOnLoad )
+		{
+			g_Swap.SwapFieldsToTargetEndian( (dphysmodel_t*)pSrcAligned, (dphysmodel_t*)pSrc );
+		}
+		else
+		{
+			Q_memcpy( pSrcAligned, pSrc, sizeof(dphysmodel_t) );
+		}
 		pPhysModel = (dphysmodel_t*)pSrcAligned;
 
 		pSrc += sizeof(dphysmodel_t);
@@ -1567,6 +1602,8 @@ static void SwapPhyscollideLump( byte *pDestBase, byte *pSrcBase, unsigned int &
 				// Get data size
 				int size;
 				Q_memcpy( &size, pSrc, sizeof(int) );
+				if ( g_bSwapOnLoad )
+					size = SwapLong( size );
 
 				// Fixup size
 				int padBytes = 0;
@@ -1579,6 +1616,8 @@ static void SwapPhyscollideLump( byte *pDestBase, byte *pSrcBase, unsigned int &
 
 				// Copy data and size into alligned buffer
 				int newsize = size + padBytes;
+				if ( g_bSwapOnLoad )
+					newsize = SwapLong( newsize );
 
 				Q_memcpy( pSrcAligned, &newsize, sizeof(int) );
 				Q_memcpy( pSrcAligned + sizeof(int), pSrc + sizeof(int), size );
@@ -1612,7 +1651,14 @@ static void SwapPhyscollideLump( byte *pDestBase, byte *pSrcBase, unsigned int &
 	{
 		// src headers are in native format
 		pPhysModel = (dphysmodel_t*)pSrc;
-		Q_memcpy( pDest, pSrc, sizeof(dphysmodel_t) );
+		if ( g_bSwapOnWrite )
+		{
+			g_Swap.SwapFieldsToTargetEndian( (dphysmodel_t*)pDest, (dphysmodel_t*)pSrc );
+		}
+		else
+		{
+			Q_memcpy( pDest, pSrc, sizeof(dphysmodel_t) );
+		}
 
 		pSrc += sizeof(dphysmodel_t);
 		pDest += sizeof(dphysmodel_t);
@@ -1623,6 +1669,13 @@ static void SwapPhyscollideLump( byte *pDestBase, byte *pSrcBase, unsigned int &
 		if ( pPhysModel->dataSize > 0 )
 		{		
 			vcollide_t collide = {0};
+			int dataSize = pPhysModel->dataSize + pPhysModel->keydataSize;
+
+			if ( g_bSwapOnWrite )
+			{
+				// Load the collide data
+				physcollision->VCollideLoad( &collide, pPhysModel->solidCount, (const char *)pSrc, dataSize, false );
+			}
 
 			int *offsets = new int[ pPhysModel->solidCount ];
 
@@ -1632,6 +1685,10 @@ static void SwapPhyscollideLump( byte *pDestBase, byte *pSrcBase, unsigned int &
 				int headerSize = 0;
 				swapcollideheader_t *baseHdr = (swapcollideheader_t*)pSrc;
 				short modelType = baseHdr->modelType;
+				if ( g_bSwapOnLoad )
+				{
+					g_Swap.SwapBufferToTargetEndian( &modelType );
+				}
 
 				if ( modelType == 0 ) // COLLIDE_POLY
 				{
@@ -1643,6 +1700,12 @@ static void SwapPhyscollideLump( byte *pDestBase, byte *pSrcBase, unsigned int &
 				}
 				else if ( modelType == 1 ) // COLLIDE_MOPP
 				{
+					// The PC still unserializes these, but we don't support them 
+					if ( g_bSwapOnWrite )
+					{
+						collide.solids[i] = NULL;
+					}
+
 					headerSize = sizeof(swapmoppsurfaceheader_t);
 					swapmoppsurfaceheader_t swapHdr;
 					Q_memcpy( &swapHdr, pSrc, headerSize );
@@ -1656,6 +1719,11 @@ static void SwapPhyscollideLump( byte *pDestBase, byte *pSrcBase, unsigned int &
 					Assert( 0 );
 				}
 
+				if ( g_bSwapOnLoad )
+				{
+					// src needs the native header data to load the vcollides
+					Q_memcpy( pSrc, pDest, headerSize );
+				}
 				// HACK: Need either surfaceSize or moppSize - both sit at the same offset in the structure
 				swapmoppsurfaceheader_t *hdr = (swapmoppsurfaceheader_t*)pSrc;
 				pSrc += hdr->size + sizeof(int);
@@ -1665,6 +1733,10 @@ static void SwapPhyscollideLump( byte *pDestBase, byte *pSrcBase, unsigned int &
 
 			pSrc = pSrcBase;
 			pDest = pDestBase;
+			if ( g_bSwapOnLoad )
+			{
+				physcollision->VCollideLoad( &collide, pPhysModel->solidCount, (const char *)pSrc, dataSize, true );
+			}
 
 			// Write out the ledge tree data
 			for ( int i = 0; i < pPhysModel->solidCount; ++i )
@@ -1674,7 +1746,7 @@ static void SwapPhyscollideLump( byte *pDestBase, byte *pSrcBase, unsigned int &
 					// skip over the size member
 					pSrc += sizeof(int);
 					pDest += sizeof(int);
-					int offset = physcollision->CollideWrite( (char*)pDest, collide.solids[i] );
+					int offset = physcollision->CollideWrite( (char*)pDest, collide.solids[i], g_bSwapOnWrite );
 					pSrc += offset;
 					pDest += offset;
 				}
@@ -1713,7 +1785,10 @@ static void SwapPhysdispLump( byte *pDest, byte *pSrc, int count )
 	// previous table) byte-stream data structure of the displacement collision models
 	// these byte-stream structs are endian-neutral because each element is byte-sized
 	unsigned short dispCount = *(unsigned short*)pSrc;
-
+	if ( g_bSwapOnLoad )
+	{
+		g_Swap.SwapBufferToTargetEndian( &dispCount );
+	}
 	g_Swap.SwapBufferToTargetEndian( (unsigned short*)pDest, (unsigned short*)pSrc, dispCount + 1 );
 
 	const int nBytes = (dispCount + 1) * sizeof( unsigned short );
@@ -1728,7 +1803,10 @@ static void SwapPhysdispLump( byte *pDest, byte *pSrc, int count )
 static void SwapVisibilityLump( byte *pDest, byte *pSrc, int count )
 {
 	int firstInt = *(int*)pSrc;
-
+	if ( g_bSwapOnLoad )
+	{
+		g_Swap.SwapBufferToTargetEndian( &firstInt );
+	}
 	int intCt = firstInt * 2 + 1;
 	const int hdrSize = intCt * sizeof(int);
 	g_Swap.SwapBufferToTargetEndian( (int*)pDest, (int*)pSrc, intCt );
@@ -1776,10 +1854,39 @@ int CopyLumpInternal( int fieldType, int lump, T *dest, int forceVersion )
 	int fieldSize = ( fieldType == FIELD_VECTOR ) ? sizeof(Vector) : sizeof(T);
 	unsigned int length = g_pBSPHeader->lumps[lump].filelen;
 	unsigned int ofs = g_pBSPHeader->lumps[lump].fileofs;
+
+	// count must be of the integral type
+	unsigned int count = length / sizeof(T);
 	
 	ValidateLump( lump, length, fieldSize, forceVersion );
 
-	memcpy( dest, (byte*)g_pBSPHeader + ofs, length );
+	if ( g_bSwapOnLoad )
+	{
+		switch( lump )
+		{
+		case LUMP_VISIBILITY:
+			SwapVisibilityLump( (byte*)dest, ((byte*)g_pBSPHeader + ofs), count );
+			break;
+		
+		case LUMP_PHYSCOLLIDE:
+			// SwapPhyscollideLump may change size
+			SwapPhyscollideLump( (byte*)dest, ((byte*)g_pBSPHeader + ofs), count );
+			length = count;
+			break;
+
+		case LUMP_PHYSDISP:
+			SwapPhysdispLump( (byte*)dest, ((byte*)g_pBSPHeader + ofs), count );
+			break;
+
+		default:
+			g_Swap.SwapBufferToTargetEndian( dest, (T*)((byte*)g_pBSPHeader + ofs), count );
+			break;
+		}
+	}
+	else
+	{
+		memcpy( dest, (byte*)g_pBSPHeader + ofs, length );
+	}
 
 	// Return actual count of elements
 	return length / fieldSize;
@@ -1833,7 +1940,14 @@ int CopyLumpInternal( int lump, T *dest, int forceVersion )
 	
 	ValidateLump( lump, length, sizeof(T), forceVersion );
 
-	memcpy( dest, (byte*)g_pBSPHeader + ofs, length );
+	if ( g_bSwapOnLoad )
+	{
+		g_Swap.SwapFieldsToTargetEndian( dest, (T*)((byte*)g_pBSPHeader + ofs), count );
+	}
+	else
+	{
+		memcpy( dest, (byte*)g_pBSPHeader + ofs, length );
+	}
 
 	return count;
 }
@@ -1909,6 +2023,10 @@ void Lumps_Write( void )
 
 int LoadLeafs( void )
 {
+#if defined( BSP_USE_LESS_MEMORY )
+	dleafs = (dleaf_t*)malloc( g_pBSPHeader->lumps[LUMP_LEAFS].filelen );
+#endif
+
 	switch ( LumpVersion( LUMP_LEAFS ) )
 	{
 	case 0:
@@ -1936,6 +2054,10 @@ int LoadLeafs( void )
 				g_LeafAmbientIndexLDR[i].ambientSampleCount = 1;
 				g_LeafAmbientIndexLDR[i].firstAmbientSample = i;
 		
+				if ( g_bSwapOnLoad )
+				{
+					g_Swap.SwapFieldsToTargetEndian( pSrc );
+				}
 				// pDst is a subset of pSrc;
 				*pDst = *( ( dleaf_t * )( void * )pSrc );
 				pDstLeafAmbientLighting->cube = pSrc->m_AmbientLighting;
@@ -2009,10 +2131,18 @@ void LoadLeafAmbientLighting( int numLeafs )
 
 			if ( pSrc )
 			{
+				if ( g_bSwapOnLoad )
+				{
+					g_Swap.SwapFieldsToTargetEndian( &pSrc[i] );
+				}
 				g_LeafAmbientLightingLDR[i].cube = pSrc[i];
 			}
 			if ( pSrcHDR )
 			{
+				if ( g_bSwapOnLoad )
+				{
+					g_Swap.SwapFieldsToTargetEndian( &pSrcHDR[i] );
+				}
 				g_LeafAmbientLightingHDR[i].cube = pSrcHDR[i];
 			}
 		}
@@ -2053,6 +2183,12 @@ void OpenBSPFile( const char *filename )
 
 	// load the file header
 	LoadFile( filename, (void **)&g_pBSPHeader );
+
+	if ( g_bSwapOnLoad )
+	{
+		g_Swap.ActivateByteSwapping( true );
+		g_Swap.SwapFieldsToTargetEndian( g_pBSPHeader );
+	}
 
 	ValidateHeader( filename, g_pBSPHeader );
 
@@ -2198,6 +2334,13 @@ void UnloadBSPFile()
 	numplanes = 0;
 
 	numleafs = 0;
+#if defined( BSP_USE_LESS_MEMORY )
+	if ( dleafs )
+	{ 
+		free( dleafs );
+		dleafs = NULL;
+	}
+#endif
 
 	numnodes = 0;
 	texinfo.Purge();
@@ -2435,12 +2578,20 @@ static void SwapInPlace( int fieldType, T *pData, int count )
 template< class T >
 static void WriteData( int fieldType, T *pData, int count )
 {
+	if ( g_bSwapOnWrite )
+	{
+		SwapInPlace( fieldType, pData, count );
+	}
 	SafeWrite( g_hBSPFile, pData, count * sizeof(T) );
 }
 
 template< class T >
 static void WriteData( T *pData, int count )
 {
+	if ( g_bSwapOnWrite )
+	{
+		SwapInPlace( pData, count );
+	}
 	SafeWrite( g_hBSPFile, pData, count * sizeof(T) );
 }
 
@@ -3691,7 +3842,7 @@ bool SwapVHV( void *pDestBase, void *pSrcBase )
 	byte *pDest = (byte*)pDestBase;
 	byte *pSrc = (byte*)pSrcBase;
 
-	HardwareVerts::FileHeader_t *pHdr = (HardwareVerts::FileHeader_t*)( pSrc );
+	HardwareVerts::FileHeader_t *pHdr = (HardwareVerts::FileHeader_t*)( g_bSwapOnLoad ? pDest : pSrc );
 	g_Swap.SwapFieldsToTargetEndian<HardwareVerts::FileHeader_t>( (HardwareVerts::FileHeader_t*)pDest, (HardwareVerts::FileHeader_t*)pSrc );
 	pSrc += sizeof(HardwareVerts::FileHeader_t);
 	pDest += sizeof(HardwareVerts::FileHeader_t);
@@ -3703,7 +3854,7 @@ bool SwapVHV( void *pDestBase, void *pSrcBase )
 
 	HardwareVerts::MeshHeader_t *pSrcMesh = (HardwareVerts::MeshHeader_t*)pSrc;
 	HardwareVerts::MeshHeader_t *pDestMesh = (HardwareVerts::MeshHeader_t*)pDest;
-	HardwareVerts::MeshHeader_t *pMesh = (HardwareVerts::MeshHeader_t*)( pSrc );
+	HardwareVerts::MeshHeader_t *pMesh = (HardwareVerts::MeshHeader_t*)( g_bSwapOnLoad ? pDest : pSrc );
 	for ( int i = 0; i < pHdr->m_nMeshes; ++i, ++pMesh, ++pSrcMesh, ++pDestMesh )
 	{
 		g_Swap.SwapFieldsToTargetEndian( pDestMesh, pSrcMesh );
@@ -3764,6 +3915,7 @@ void ConvertPakFileContents( const char *pInFilename )
 
 	CUtlBuffer sourceBuf;
 	CUtlBuffer targetBuf;
+	bool bConverted;
 	CUtlVector< CUtlString > hdrFiles;
 
 	int id = -1;
@@ -3775,6 +3927,7 @@ void ConvertPakFileContents( const char *pInFilename )
 		if ( id == -1)
 			break;
 
+		bConverted = false;
 		sourceBuf.Purge();
 		targetBuf.Purge();
 
@@ -3791,13 +3944,13 @@ void ConvertPakFileContents( const char *pInFilename )
 		if ( pExtension && !V_stricmp( pExtension, "vtf" ) )
 		{
 			bOK = g_pVTFConvertFunc( relativeName, sourceBuf, targetBuf, g_pCompressFunc );
-
 			if ( !bOK )
 			{
 				Warning( "Failed to convert '%s' in '%s'.\n", relativeName, pInFilename );
 				continue;
 			}
 	
+			bConverted = true;
 			pExt = ".vtf";
 		}
 		else if ( pExtension && !V_stricmp( pExtension, "vhv" ) )
@@ -3859,11 +4012,23 @@ void ConvertPakFileContents( const char *pInFilename )
 				targetBuf.SeekGet( CUtlBuffer::SEEK_HEAD, 0 );
 			}
 
+			bConverted = true;
 			pExt = ".vhv";
 		}
 
-		// straight copy
-		AddBufferToPak( newPakFile, relativeName, sourceBuf.Base(), sourceBuf.TellMaxPut(), false, IZip::eCompressionType_None );
+		if ( !bConverted )
+		{
+			// straight copy
+			AddBufferToPak( newPakFile, relativeName, sourceBuf.Base(), sourceBuf.TellMaxPut(), false, IZip::eCompressionType_None );
+		}
+		else
+		{
+			// converted filename
+			V_StripExtension( relativeName, relativeName, sizeof( relativeName ) );
+			V_strcat( relativeName, ".360", sizeof( relativeName ) );
+			V_strcat( relativeName, pExt, sizeof( relativeName ) );
+			AddBufferToPak( newPakFile, relativeName, targetBuf.Base(), targetBuf.TellMaxPut(), false, IZip::eCompressionType_None );
+		}
 
 		if ( V_stristr( relativeName, ".hdr" ) || V_stristr( relativeName, "_hdr" ) )
 		{
@@ -3922,6 +4087,31 @@ int SwapLumpToDisk( int fieldType, int lumpnum )
 	unsigned int count = CopyLumpInternal<T>( fieldType, lumpnum, (T*)pBuffer, g_pBSPHeader->lumps[lumpnum].version );
 	g_pBSPHeader->lumps[lumpnum].filelen = count * fieldSize;
 
+	if ( g_bSwapOnWrite )
+	{
+		// Swap the lump in place before writing
+		switch( lumpnum )
+		{
+		case LUMP_VISIBILITY:
+			SwapVisibilityLump( (byte*)pBuffer, (byte*)pBuffer, count );
+			break;
+		
+		case LUMP_PHYSCOLLIDE:
+			// SwapPhyscollideLump may change size
+			SwapPhyscollideLump( (byte*)pBuffer, (byte*)pBuffer, count );
+			g_pBSPHeader->lumps[lumpnum].filelen = count;
+			break;
+
+		case LUMP_PHYSDISP:
+			SwapPhysdispLump( (byte*)pBuffer, (byte*)pBuffer, count );
+			break;
+
+		default:
+			g_Swap.SwapBufferToTargetEndian( (T*)pBuffer, (T*)pBuffer, g_pBSPHeader->lumps[lumpnum].filelen / sizeof(T) );
+			break;
+		}
+	}
+
 	SetAlignedLumpPosition( lumpnum );
 	SafeWrite( g_hBSPFile, pBuffer, g_pBSPHeader->lumps[lumpnum].filelen );
 
@@ -3944,6 +4134,12 @@ int SwapLumpToDisk( int lumpnum )
 	// CopyLumpInternal will handle the swap on load case
 	int count = CopyLumpInternal<T>( lumpnum, (T*)pBuffer, g_pBSPHeader->lumps[lumpnum].version );
 	g_pBSPHeader->lumps[lumpnum].filelen = count * sizeof(T);
+
+	if ( g_bSwapOnWrite )
+	{
+		// Swap the lump in place before writing
+		g_Swap.SwapFieldsToTargetEndian( (T*)pBuffer, (T*)pBuffer, count );
+	}
 
 	SetAlignedLumpPosition( lumpnum );
 	SafeWrite( g_hBSPFile, pBuffer, g_pBSPHeader->lumps[lumpnum].filelen );
@@ -3987,6 +4183,13 @@ void SwapLeafAmbientLightingLumpToDisk()
 			DevMsg( "Swapping %s\n", GetLumpName( LUMP_LEAF_AMBIENT_LIGHTING_HDR ) );
 			DevMsg( "Swapping %s\n", GetLumpName( LUMP_LEAF_AMBIENT_INDEX_HDR ) );
 
+			// write HDR
+			if ( g_bSwapOnWrite )
+			{
+				g_Swap.SwapFieldsToTargetEndian( g_LeafAmbientLightingHDR.Base(), g_LeafAmbientLightingHDR.Count() );
+				g_Swap.SwapFieldsToTargetEndian( g_LeafAmbientIndexHDR.Base(), g_LeafAmbientIndexHDR.Count() );
+			}
+
 			SetAlignedLumpPosition( LUMP_LEAF_AMBIENT_LIGHTING_HDR );
 			g_pBSPHeader->lumps[LUMP_LEAF_AMBIENT_LIGHTING_HDR].version = LUMP_LEAF_AMBIENT_LIGHTING_VERSION;
 			g_pBSPHeader->lumps[LUMP_LEAF_AMBIENT_LIGHTING_HDR].filelen = g_LeafAmbientLightingHDR.Count() * sizeof( dleafambientlighting_t );
@@ -4009,6 +4212,12 @@ void SwapLeafAmbientLightingLumpToDisk()
 			// no HDR, keep LDR version
 			DevMsg( "Swapping %s\n", GetLumpName( LUMP_LEAF_AMBIENT_LIGHTING ) );
 			DevMsg( "Swapping %s\n", GetLumpName( LUMP_LEAF_AMBIENT_INDEX ) );
+
+			if ( g_bSwapOnWrite )
+			{
+				g_Swap.SwapFieldsToTargetEndian( g_LeafAmbientLightingLDR.Base(), g_LeafAmbientLightingLDR.Count() );
+				g_Swap.SwapFieldsToTargetEndian( g_LeafAmbientIndexLDR.Base(), g_LeafAmbientIndexLDR.Count() );
+			}
 
 			SetAlignedLumpPosition( LUMP_LEAF_AMBIENT_LIGHTING );
 			g_pBSPHeader->lumps[LUMP_LEAF_AMBIENT_LIGHTING].version = LUMP_LEAF_AMBIENT_LIGHTING_VERSION;
@@ -4037,6 +4246,10 @@ void SwapLeafLumpToDisk( void )
 
 	// load the leafs
 	int count = LoadLeafs();
+	if ( g_bSwapOnWrite )
+	{
+		g_Swap.SwapFieldsToTargetEndian( dleafs, count );
+	}
 
 	bool bOldLeafVersion = ( LumpVersion( LUMP_LEAFS ) == 0 );
 	if ( bOldLeafVersion )
@@ -4057,6 +4270,14 @@ void SwapLeafLumpToDisk( void )
 		// can now safely change
 		g_pBSPHeader->lumps[LUMP_LEAFS].version = 1;
 	}
+
+#if defined( BSP_USE_LESS_MEMORY )
+	if ( dleafs )
+	{
+		free( dleafs );
+		dleafs = NULL;
+	}
+#endif
 }
 
 void SwapOcclusionLumpToDisk( void )
@@ -4477,7 +4698,6 @@ bool RepackBSP( CUtlBuffer &inputBuffer, CUtlBuffer &outputBuffer, CompressFunc_
 	return true;
 }
 
-
 //-----------------------------------------------------------------------------
 // Get the pak lump from a BSP
 //-----------------------------------------------------------------------------
@@ -4491,6 +4711,15 @@ bool GetPakFileLump( const char *pBSPFilename, void **pPakData, int *pPakSize )
 		Warning( "Error! Couldn't open file %s!\n", pBSPFilename ); 
 		return false;
 	}
+
+	// determine endian nature
+	dheader_t *pHeader;
+	LoadFile( pBSPFilename, (void **)&pHeader );
+	bool bSwap = ( pHeader->ident == BigLong( IDBSPHEADER ) );
+	free( pHeader );
+
+	g_bSwapOnLoad = bSwap;
+	g_bSwapOnWrite = !bSwap;
 
 	OpenBSPFile( pBSPFilename );
 	
@@ -4558,6 +4787,7 @@ static int LumpOffsetCompare( const void *pElem1, const void *pElem2 )
 	}
 	return 0;
 }
+
 
 //-----------------------------------------------------------------------------
 // Build a list of files that BSP owns, world/cubemap materials, static props, etc.

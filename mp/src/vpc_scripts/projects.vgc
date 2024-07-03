@@ -48,7 +48,7 @@ $Project "server"
 
 $Project "mathlib"
 {
-	"mathlib\mathlib.vpc" [$WINDOWS||$X360||$POSIX]
+	"mathlib\mathlib.vpc" [$WINDOWS||$POSIX]
 }
 
 $Project "motionmapper"
@@ -63,7 +63,7 @@ $Project "phonemeextractor"
 
 $Project "raytrace"
 {
-	"raytrace\raytrace.vpc" [$WIN32||$X360||$POSIX]
+	"raytrace\raytrace.vpc" [$WIN32||$POSIX]
 }
 
 $Project "qc_eyes"
@@ -83,7 +83,7 @@ $Project "tgadiff"
 
 $Project "tier1"
 {
-	"tier1\tier1.vpc" 	[$WINDOWS || $X360||$POSIX]
+	"tier1\tier1.vpc" 	[$WINDOWS||$POSIX]
 }
 
 $Project "vbsp"
@@ -93,7 +93,7 @@ $Project "vbsp"
 
 $Project "vgui_controls"
 {
-	"vgui2\vgui_controls\vgui_controls.vpc" [$WIN32||$X360||$POSIX]
+	"vgui2\vgui_controls\vgui_controls.vpc" [$WIN32||$POSIX]
 }
 
 $Project "vice"

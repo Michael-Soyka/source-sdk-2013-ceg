@@ -49,7 +49,6 @@ ConVar sniperLines( "showsniperlines", "0" );
 ConVar sniperviewdist("sniperviewdist", "35" );
 ConVar showsniperdist("showsniperdist", "0" );
 ConVar sniperspeak( "sniperspeak", "0" );
-ConVar sniper_xbox_delay( "sniper_xbox_delay", "1" );
 
 // Moved to HL2_SharedGameRules because these are referenced by shared AmmoDef functions
 extern ConVar sk_dmg_sniper_penetrate_plr;
