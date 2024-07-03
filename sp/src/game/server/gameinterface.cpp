@@ -79,7 +79,6 @@
 #include "tier2/tier2.h"
 #include "particles/particles.h"
 #include "gamestats.h"
-#include "engine/imatchmaking.h"
 #include "hl2orange.spa.h"
 #include "particle_parse.h"
 #ifndef NO_STEAM

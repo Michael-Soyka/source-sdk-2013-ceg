@@ -125,17 +125,18 @@ void CInput::ActivateMouse (void)
 	{
 		if ( m_fMouseParmsValid )
 		{
-#if defined( PLATFORM_WINDOWS )
-			m_fRestoreSPI = SystemParametersInfo (SPI_SETMOUSE, 0, m_rgNewMouseParms, 0) ? true : false;
-#endif
+			#if defined( PLATFORM_WINDOWS_PC )
+				m_fRestoreSPI = SystemParametersInfo (SPI_SETMOUSE, 0, m_rgNewMouseParms, 0) ? true : false;
+			#endif
 		}
 		m_fMouseActive = true;
 
 		ResetMouse();
-#if !defined( PLATFORM_WINDOWS )
-		int dx, dy;
-		engine->GetMouseDelta( dx, dy, true );
-#endif
+
+		#if !defined( PLATFORM_WINDOWS_PC )
+			int dx, dy;
+			engine->GetMouseDelta( dx, dy, true );
+		#endif
 
 		// Clear accumulated error, too
 		m_flAccumulatedMouseXMovement = 0;
@@ -161,16 +162,17 @@ void CInput::DeactivateMouse (void)
 	{
 		if ( m_fRestoreSPI )
 		{
-#if defined( PLATFORM_WINDOWS )
-			SystemParametersInfo( SPI_SETMOUSE, 0, m_rgOrigMouseParms, 0 );
-#endif
+			#if defined( PLATFORM_WINDOWS_PC )
+				SystemParametersInfo( SPI_SETMOUSE, 0, m_rgOrigMouseParms, 0 );
+			#endif
 		}
 		m_fMouseActive = false;
 		vgui::surface()->SetCursor( vgui::dc_arrow );
-#if !defined( PLATFORM_WINDOWS )
-		// now put the mouse back in the middle of the screen
-		ResetMouse();
-#endif
+
+		#if !defined( PLATFORM_WINDOWS_PC )
+			// now put the mouse back in the middle of the screen
+			ResetMouse();
+		#endif
 
 		// Clear accumulated error, too
 		m_flAccumulatedMouseXMovement = 0;
@@ -585,22 +587,21 @@ void CInput::AccumulateMouse( void )
 	{
 		//Assert( !vgui::surface()->IsCursorVisible() );
 		// By design, we follow the old mouse path even when using SDL for Windows, to retain old mouse behavior.
-#if defined( PLATFORM_WINDOWS )
-		int current_posx, current_posy;
+		#if defined( PLATFORM_WINDOWS_PC )
+			int current_posx, current_posy;
 
-		GetMousePos(current_posx, current_posy);
+			GetMousePos(current_posx, current_posy);
 
-		m_flAccumulatedMouseXMovement += current_posx - x;
-		m_flAccumulatedMouseYMovement += current_posy - y;
-		
-#elif defined( USE_SDL )
-		int dx, dy;
-		engine->GetMouseDelta( dx, dy );
-		m_flAccumulatedMouseXMovement += dx;
-		m_flAccumulatedMouseYMovement += dy;
-#else
-#error
-#endif
+			m_flAccumulatedMouseXMovement += current_posx - x;
+			m_flAccumulatedMouseYMovement += current_posy - y;
+		#elif defined( USE_SDL )
+			int dx, dy;
+			engine->GetMouseDelta( dx, dy );
+			m_flAccumulatedMouseXMovement += dx;
+			m_flAccumulatedMouseYMovement += dy;
+		#else
+			#error
+		#endif
 		// force the mouse to the center, so there's room to move
 		ResetMouse();
 	}

@@ -56,9 +56,9 @@ ConVar player_limit_jump_speed( "player_limit_jump_speed", "1", FCVAR_REPLICATED
 ConVar option_duck_method("option_duck_method", "1", FCVAR_REPLICATED|FCVAR_ARCHIVE );// 0 = HOLD to duck, 1 = Duck is a toggle
 
 #ifdef STAGING_ONLY
-#ifdef CLIENT_DLL
+	#ifdef CLIENT_DLL
 ConVar debug_latch_reset_onduck( "debug_latch_reset_onduck", "1", FCVAR_CHEAT );
-#endif
+	#endif
 #endif
 
 // [MD] I'll remove this eventually. For now, I want the ability to A/B the optimizations.

@@ -342,24 +342,14 @@ extern "C" {
 #define STATS_COLUMN_PLAYER_MAX_RANKED_POINTS_SCORED 2
 
 //
-// Matchmaking queries
-//
-// These values are passed as the dwProcedureIndex parameter to
-// XSessionSearch to indicate which matchmaking query to run.
-//
-
-#define SESSION_MATCH_QUERY_PLAYER_MATCH            0
-
-//
 // Gamer pictures
 //
 // These ids are passed as the dwPictureId parameter to XUserAwardGamerTile.
 //
 
 
-
 #ifdef __cplusplus
-}
+	}
 #endif
 
 #endif // __THE_ORANGE_BOX_SPA_H__

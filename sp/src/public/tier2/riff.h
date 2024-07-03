@@ -189,14 +189,15 @@ private:
 #define WAVE_LIST				MAKEID('L','I','S','T') 
 
 #ifndef WAVE_FORMAT_PCM
-#define WAVE_FORMAT_PCM			0x0001
+	#define WAVE_FORMAT_PCM			0x0001
 #endif
+
 #ifndef WAVE_FORMAT_ADPCM
-#define WAVE_FORMAT_ADPCM		0x0002
+	#define WAVE_FORMAT_ADPCM		0x0002
 #endif
-#define WAVE_FORMAT_XBOX_ADPCM	0x0069
+
 #ifndef WAVE_FORMAT_XMA
-#define WAVE_FORMAT_XMA			0x0165
+	#define WAVE_FORMAT_XMA			0x0165
 #endif
 
 #endif // RIFF_H

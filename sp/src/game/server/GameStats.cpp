@@ -6,7 +6,6 @@
 
 #include "cbase.h"
 
-
 #include "igamesystem.h"
 #include "gamestats.h"
 #include "tier1/utlstring.h"
@@ -14,16 +13,12 @@
 #include "tier1/utlbuffer.h"
 
 #ifndef SWDS
-#include "iregistry.h"
+	#include "iregistry.h"
 #endif
 
 #include "tier1/utldict.h"
 #include "tier0/icommandline.h"
 #include "vehicle_base.h"
-
-#if defined( _X360 )
-#include "xbox/xbox_win32stubs.h"
-#endif
 
 #define GAMESTATS_LOG_FILE "gamestats.log"
 #define GAMESTATS_PATHID "MOD"

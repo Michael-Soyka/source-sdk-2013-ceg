@@ -20,16 +20,13 @@
 #ifdef USE_ACTUAL_DX
 
 #ifndef WIN32
-#error sorry man
+	#error sorry man
 #endif
-#ifdef _X360
-#include "d3d9.h"
-#include "d3dx9.h"
-#else
+
 #include <windows.h>
 #include "../../dx9sdk/include/d3d9.h"
 #include "../../dx9sdk/include/d3dx9.h"
-#endif
+
 typedef HWND VD3DHWND;
 
 #else

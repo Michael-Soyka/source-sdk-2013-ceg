@@ -5,17 +5,16 @@
 //===========================================================================//
 
 #ifndef IMATCHMAKING_H
-#define IMATCHMAKING_H
+	#define IMATCHMAKING_H
+	
 #ifdef _WIN32
-#pragma once
+	#pragma once
 #endif
 
 #include "const.h"
 #include "vgui/VGUI.h"
 
-#if !defined( _X360 )
-	#include "xbox/xboxstubs.h"
-#endif
+#include "xbox/xboxstubs.h"
 
 class KeyValues;
 

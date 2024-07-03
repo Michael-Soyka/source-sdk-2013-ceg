@@ -15,9 +15,9 @@ $Project "captioncompiler"
 
 $Project "client"
 {
-	"game\client\client_hl2.vpc"		[($WIN32||$X360||$POSIX) && $HL2]
-	"game\client\client_episodic.vpc"	[($WIN32||$X360||$POSIX) && $EPISODIC]
-	"game\client\client_sdk2013ce.vpc"	[($WIN32||$X360||$POSIX) && $SDK2013CE]
+	"game\client\client_hl2.vpc"		[($WIN32||$POSIX) && $HL2]
+	"game\client\client_episodic.vpc"	[($WIN32||$POSIX) && $EPISODIC]
+	"game\client\client_sdk2013ce.vpc"	[($WIN32||$POSIX) && $SDK2013CE]
 }
 
 $Project "fgdlib"
@@ -43,14 +43,14 @@ $Project "height2normal"
 
 $Project "server"
 {
-	"game\server\server_hl2.vpc"	[($WIN32||$X360||$POSIX) && $HL2]
-	"game\server\server_episodic.vpc"	[($WIN32||$X360||$POSIX) && $EPISODIC]
-	"game\server\server_sdk2013ce.vpc"	[($WIN32||$X360||$POSIX) && $SDK2013CE]
+	"game\server\server_hl2.vpc"	[($WIN32||$POSIX) && $HL2]
+	"game\server\server_episodic.vpc"	[($WIN32||$POSIX) && $EPISODIC]
+	"game\server\server_sdk2013ce.vpc"	[($WIN32||$POSIX) && $SDK2013CE]
 }
 
 $Project "mathlib"
 {
-	"mathlib\mathlib.vpc" [$WINDOWS||$X360||$POSIX]
+	"mathlib\mathlib.vpc" [$WINDOWS||$POSIX]
 }
 
 $Project "motionmapper"
@@ -65,7 +65,7 @@ $Project "phonemeextractor"
 
 $Project "raytrace"
 {
-	"raytrace\raytrace.vpc" [$WIN32||$X360||$POSIX]
+	"raytrace\raytrace.vpc" [$WIN32||$POSIX]
 }
 
 $Project "qc_eyes"
@@ -85,7 +85,7 @@ $Project "tgadiff"
 
 $Project "tier1"
 {
-	"tier1\tier1.vpc" 	[$WINDOWS || $X360||$POSIX]
+	"tier1\tier1.vpc" 	[$WINDOWS||$POSIX]
 }
 
 $Project "vbsp"
@@ -95,7 +95,7 @@ $Project "vbsp"
 
 $Project "vgui_controls"
 {
-	"vgui2\vgui_controls\vgui_controls.vpc" [$WIN32||$X360||$POSIX]
+	"vgui2\vgui_controls\vgui_controls.vpc" [$WIN32||$POSIX]
 }
 
 $Project "vice"

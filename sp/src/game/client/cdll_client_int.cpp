@@ -106,7 +106,6 @@
 #include "vgui/ILocalize.h"
 #include "vgui/IVGui.h"
 #include "ipresence.h"
-#include "engine/imatchmaking.h"
 #include "cdll_bounded_cvars.h"
 #include "matsys_controls/matsyscontrols.h"
 #include "gamestats.h"

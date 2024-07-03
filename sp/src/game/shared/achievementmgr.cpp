@@ -38,7 +38,6 @@
 
 #include "tier3/tier3.h"
 #include "vgui/ILocalize.h"
-#include "engine/imatchmaking.h"
 #include "tier0/vprof.h"
 
 #if defined(TF_DLL) || defined(TF_CLIENT_DLL)

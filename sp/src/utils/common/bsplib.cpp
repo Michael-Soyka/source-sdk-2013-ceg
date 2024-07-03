@@ -566,8 +566,11 @@ CUtlVector<byte> *pdlightdata = &dlightdataLDR;
 CUtlVector<char> dentdata;
 
 int			numleafs;
-
+#if !defined( BSP_USE_LESS_MEMORY )
 dleaf_t		dleafs[MAX_MAP_LEAFS];
+#else
+dleaf_t		*dleafs;
+#endif
 
 CUtlVector<dleafambientindex_t> g_LeafAmbientIndexLDR;
 CUtlVector<dleafambientindex_t> g_LeafAmbientIndexHDR;
@@ -1964,55 +1967,59 @@ void Lumps_Write( void )
 
 int LoadLeafs( void )
 {
+#if defined( BSP_USE_LESS_MEMORY )
+	dleafs = (dleaf_t*)malloc( g_pBSPHeader->lumps[LUMP_LEAFS].filelen );
+#endif
+
 	switch ( LumpVersion( LUMP_LEAFS ) )
 	{
-		case 0:
+	case 0:
+		{
+			g_Lumps.bLumpParsed[LUMP_LEAFS] = true;
+			int length = g_pBSPHeader->lumps[LUMP_LEAFS].filelen;
+			int size = sizeof( dleaf_version_0_t );
+			if ( length % size )
 			{
-				g_Lumps.bLumpParsed[LUMP_LEAFS] = true;
-				int length = g_pBSPHeader->lumps[LUMP_LEAFS].filelen;
-				int size = sizeof( dleaf_version_0_t );
-				if ( length % size )
-				{
-					Error( "odd size for LUMP_LEAFS\n" );
-				}
-				int count = length / size;
-
-				void *pSrcBase = ( ( byte * )g_pBSPHeader + g_pBSPHeader->lumps[LUMP_LEAFS].fileofs );
-				dleaf_version_0_t *pSrc = (dleaf_version_0_t *)pSrcBase;
-				dleaf_t *pDst = dleafs;
-
-				// version 0 predates HDR, build the LDR
-				g_LeafAmbientLightingLDR.SetCount( count );
-				g_LeafAmbientIndexLDR.SetCount( count );
-
-				dleafambientlighting_t *pDstLeafAmbientLighting = &g_LeafAmbientLightingLDR[0];
-				for ( int i = 0; i < count; i++ )
-				{
-					g_LeafAmbientIndexLDR[i].ambientSampleCount = 1;
-					g_LeafAmbientIndexLDR[i].firstAmbientSample = i;
-		
-					if ( g_bSwapOnLoad )
-					{
-						g_Swap.SwapFieldsToTargetEndian( pSrc );
-					}
-					// pDst is a subset of pSrc;
-					*pDst = *( ( dleaf_t * )( void * )pSrc );
-					pDstLeafAmbientLighting->cube = pSrc->m_AmbientLighting;
-					pDstLeafAmbientLighting->x = pDstLeafAmbientLighting->y = pDstLeafAmbientLighting->z = pDstLeafAmbientLighting->pad = 0;
-					pDst++;
-					pSrc++;
-					pDstLeafAmbientLighting++;
-				}
-				return count;
+				Error( "odd size for LUMP_LEAFS\n" );
 			}
+			int count = length / size;
 
-		case 1:
-			return CopyLump( LUMP_LEAFS, dleafs );
+			void *pSrcBase = ( ( byte * )g_pBSPHeader + g_pBSPHeader->lumps[LUMP_LEAFS].fileofs );
+			dleaf_version_0_t *pSrc = (dleaf_version_0_t *)pSrcBase;
+			dleaf_t *pDst = dleafs;
 
-		default:
-			Assert( 0 );
-			Error( "Unknown LUMP_LEAFS version\n" );
-			return 0;
+			// version 0 predates HDR, build the LDR
+			g_LeafAmbientLightingLDR.SetCount( count );
+			g_LeafAmbientIndexLDR.SetCount( count );
+
+			dleafambientlighting_t *pDstLeafAmbientLighting = &g_LeafAmbientLightingLDR[0];
+			for ( int i = 0; i < count; i++ )
+			{
+				g_LeafAmbientIndexLDR[i].ambientSampleCount = 1;
+				g_LeafAmbientIndexLDR[i].firstAmbientSample = i;
+		
+				if ( g_bSwapOnLoad )
+				{
+					g_Swap.SwapFieldsToTargetEndian( pSrc );
+				}
+				// pDst is a subset of pSrc;
+				*pDst = *( ( dleaf_t * )( void * )pSrc );
+				pDstLeafAmbientLighting->cube = pSrc->m_AmbientLighting;
+				pDstLeafAmbientLighting->x = pDstLeafAmbientLighting->y = pDstLeafAmbientLighting->z = pDstLeafAmbientLighting->pad = 0;
+				pDst++;
+				pSrc++;
+				pDstLeafAmbientLighting++;
+			}
+			return count;
+		}
+
+	case 1:
+		return CopyLump( LUMP_LEAFS, dleafs );
+
+	default:
+		Assert( 0 );
+		Error( "Unknown LUMP_LEAFS version\n" );
+		return 0;
 	}
 }
 
@@ -2271,6 +2278,13 @@ void UnloadBSPFile()
 	numplanes = 0;
 
 	numleafs = 0;
+#if defined( BSP_USE_LESS_MEMORY )
+	if ( dleafs )
+	{ 
+		free( dleafs );
+		dleafs = NULL;
+	}
+#endif
 
 	numnodes = 0;
 	texinfo.Purge();
@@ -4186,56 +4200,6 @@ void SwapLeafAmbientLightingLumpToDisk()
 	}
 }
 
-void SwapLeafLumpToDisk( void )
-{
-	DevMsg( "Swapping %s\n", GetLumpName( LUMP_LEAFS ) );
-
-	// load the leafs
-	int count = LoadLeafs();
-	if ( g_bSwapOnWrite )
-	{
-		g_Swap.SwapFieldsToTargetEndian( dleafs, count );
-	}
-
-	bool bOldLeafVersion = ( LumpVersion( LUMP_LEAFS ) == 0 );
-	if ( bOldLeafVersion )
-	{
-		// version has been converted in the load process
-		// not updating the version ye, SwapLeafAmbientLightingLumpToDisk() can detect
-		g_pBSPHeader->lumps[LUMP_LEAFS].filelen = count * sizeof( dleaf_t );
-	}
-
-	SetAlignedLumpPosition( LUMP_LEAFS );
-	SafeWrite( g_hBSPFile, dleafs, g_pBSPHeader->lumps[LUMP_LEAFS].filelen );
-
-	SwapLeafAmbientLightingLumpToDisk();
-
-	if ( bOldLeafVersion )
-	{
-		// version has been converted in the load process
-		// can now safely change
-		g_pBSPHeader->lumps[LUMP_LEAFS].version = 1;
-	}
-}
-
-void SwapOcclusionLumpToDisk( void )
-{
-	DevMsg( "Swapping %s\n", GetLumpName( LUMP_OCCLUSION ) );
-
-	LoadOcclusionLump();
-	SetAlignedLumpPosition( LUMP_OCCLUSION );
-	AddOcclusionLump();
-}
-
-void SwapGameLumpsToDisk( void )
-{
-	DevMsg( "Swapping %s\n", GetLumpName( LUMP_GAME_LUMP ) );
-
-	g_GameLumps.ParseGameLump( g_pBSPHeader );
-	SetAlignedLumpPosition( LUMP_GAME_LUMP );
-	AddGameLumps();
-}
-
 //-----------------------------------------------------------------------------
 // Generate a table of all static props, used for resolving static prop lighting
 // files back to their actual mdl.
@@ -4611,7 +4575,6 @@ static int LumpOffsetCompare( const void *pElem1, const void *pElem2 )
 	}
 	return 0;
 }
-
 
 //-----------------------------------------------------------------------------
 // Build a list of files that BSP owns, world/cubemap materials, static props, etc.

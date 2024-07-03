@@ -81,29 +81,9 @@ enum ImageFormat
 	IMAGE_FORMAT_ATI2N,			// One-surface ATI2N / DXN format
 	IMAGE_FORMAT_ATI1N,			// Two-surface ATI1N format
 
-#if defined( _X360 )
-	// Depth-stencil texture formats
-	IMAGE_FORMAT_X360_DST16,
-	IMAGE_FORMAT_X360_DST24,
-	IMAGE_FORMAT_X360_DST24F,
-	// supporting these specific formats as non-tiled for procedural cpu access
-	IMAGE_FORMAT_LINEAR_BGRX8888,
-	IMAGE_FORMAT_LINEAR_RGBA8888,
-	IMAGE_FORMAT_LINEAR_ABGR8888,
-	IMAGE_FORMAT_LINEAR_ARGB8888,
-	IMAGE_FORMAT_LINEAR_BGRA8888,
-	IMAGE_FORMAT_LINEAR_RGB888,
-	IMAGE_FORMAT_LINEAR_BGR888,
-	IMAGE_FORMAT_LINEAR_BGRX5551,
-	IMAGE_FORMAT_LINEAR_I8,
-	IMAGE_FORMAT_LINEAR_RGBA16161616,
-
-	IMAGE_FORMAT_LE_BGRX8888,
-	IMAGE_FORMAT_LE_BGRA8888,
-#endif
-
 	NUM_IMAGE_FORMATS
 };
+
 #ifndef SDK2013CE
 #if defined( POSIX  ) || defined( DX_TO_GL_ABSTRACTION )
 typedef enum _D3DFORMAT
@@ -283,10 +263,6 @@ struct BGR888_t
 	}
 };
 
-// 360 uses this structure for x86 dxt decoding
-#if defined( _X360 )
-#pragma bitfield_order( push, lsb_to_msb )
-#endif
 struct BGR565_t
 {
 	unsigned short b : 5;		// order of names changes
@@ -307,9 +283,6 @@ struct BGR565_t
 		return *this;
 	}
 };
-#if defined( _X360 )
-#pragma bitfield_order( pop )
-#endif
 
 struct BGRA5551_t
 {
