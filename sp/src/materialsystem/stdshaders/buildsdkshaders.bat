@@ -1,12 +1,6 @@
 @echo off
 setlocal
 
-rem Use dynamic shaders to build .inc files only
-rem set dynamic_shaders=1
-rem == Setup path to nmake.exe, from vc 2005 common tools directory ==
-call "%VS100COMNTOOLS%vsvars32.bat"
-
-
 set TTEXE=..\..\devtools\bin\timeprecise.exe
 if not exist %TTEXE% goto no_ttexe
 goto no_ttexe_end
