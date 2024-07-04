@@ -7,25 +7,20 @@
 #include "basecombatweapon_shared.h"
 
 #ifndef BASEHLCOMBATWEAPON_SHARED_H
-#define BASEHLCOMBATWEAPON_SHARED_H
+	#define BASEHLCOMBATWEAPON_SHARED_H
+
 #ifdef _WIN32
-#pragma once
+	#pragma once
 #endif
 
 #if defined( CLIENT_DLL )
-#define CBaseHLCombatWeapon C_BaseHLCombatWeapon
+	#define CBaseHLCombatWeapon C_BaseHLCombatWeapon
 #endif
 
 class CBaseHLCombatWeapon : public CBaseCombatWeapon
 {
 #if !defined( CLIENT_DLL )
-#ifndef _XBOX
 	DECLARE_DATADESC();
-#else
-protected:
-	DECLARE_DATADESC();
-private:
-#endif
 #endif
 
 	DECLARE_CLASS( CBaseHLCombatWeapon, CBaseCombatWeapon );

@@ -93,19 +93,15 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined( WIN32) && !defined( _X360 )
+#if defined( WIN32)
 #define STRICT
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#elif !defined(_X360)
+#else
 #define far
 #define near
 #define INVALID_HANDLE_VALUE (void*)-1
 #define _tzset tzset
-#endif
-
-#if defined( _X360 )
-#include "xbox/xbox_win32stubs.h"
 #endif
 
 #include <time.h>
@@ -118,14 +114,14 @@
 #endif
 
 #ifdef OSX
-#define MAP_ANONYMOUS MAP_ANON
+    #define MAP_ANONYMOUS MAP_ANON
 #endif
 
 #ifdef XZIP_NOT_THREAD_SAFE
-static ZRESULT lasterrorZ=ZR_OK;
+    static ZRESULT lasterrorZ=ZR_OK;
 #else
-#include "tier0/threadtools.h"
-static CThreadLocalInt<ZRESULT> lasterrorZ;
+    #include "tier0/threadtools.h"
+    static CThreadLocalInt<ZRESULT> lasterrorZ;
 #endif
 
 typedef unsigned char uch;      // unsigned 8-bit value
@@ -136,7 +132,7 @@ typedef unsigned Pos;   // must be at least 32 bits
 typedef unsigned IPos; // A Pos is an index in the character window. Pos is used only for parameter passing
 
 #ifndef EOF
-#define EOF (-1)
+    #define EOF (-1)
 #endif
 
 

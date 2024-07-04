@@ -4,17 +4,17 @@
 //
 //=====================================================================================//
 
-#if defined( WIN32 ) && !defined( _X360 )
-#include <windows.h>
+#if defined( WIN32 )
+	#include <windows.h>
 #endif
 
 #include "cbase.h"
 
 #ifdef POSIX
-#define HICON int
-const int DT_LEFT = 1;
-const int DT_CENTER = 2;
-const int DT_RIGHT = 3;
+	#define HICON int
+	const int DT_LEFT = 1;
+	const int DT_CENTER = 2;
+	const int DT_RIGHT = 3;
 #endif
 
 #include "hud_lcd.h"
@@ -34,12 +34,9 @@ const int DT_RIGHT = 3;
 
 #include "tier0/icommandline.h"
 
-#if defined( _X360 )
-#include "xbox/xbox_win32stubs.h"
-#endif
-
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+
 
 #define G15_RESOURCE_FILE "resource/g15.res"
 #define G15_MODULE_NAME "bin/g15.dll"

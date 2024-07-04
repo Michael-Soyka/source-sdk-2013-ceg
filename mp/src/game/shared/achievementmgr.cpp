@@ -5,9 +5,11 @@
 //=============================================================================
 
 #include "cbase.h"
+
 #ifdef _WIN32
-#include "winerror.h"
+	#include "winerror.h"
 #endif
+
 #include "achievementmgr.h"
 #include "icommandline.h"
 #include "KeyValues.h"
@@ -16,36 +18,33 @@
 #include "usermessages.h"
 #include "fmtstr.h"
 #include "tier1/utlbuffer.h"
+
 #ifdef CLIENT_DLL
-#include "achievement_notification_panel.h"
-#include "c_playerresource.h"
-#include "gamestats.h"
-#ifdef TF_CLIENT_DLL
-#include "econ_item_inventory.h"
-#endif //TF_CLIENT_DLL
+	#include "achievement_notification_panel.h"
+	#include "c_playerresource.h"
+	#include "gamestats.h"
+
+	#ifdef TF_CLIENT_DLL
+		#include "econ_item_inventory.h"
+	#endif //TF_CLIENT_DLL
+
 #else
-#include "enginecallback.h"
+	#include "enginecallback.h"
 #endif // CLIENT_DLL
-#ifndef _X360
+
 #include "steam/isteamuserstats.h"
 #include "steam/isteamfriends.h"
 #include "steam/isteamutils.h"
 #include "steam/steam_api.h"
 #include "steam/isteamremotestorage.h"
-#else
-#include "xbox/xbox_win32stubs.h"
-#endif
 #include "tier3/tier3.h"
 #include "vgui/ILocalize.h"
-#ifdef _X360
-#include "ixboxsystem.h"
-#endif  // _X360
-#include "engine/imatchmaking.h"
 #include "tier0/vprof.h"
 
 #if defined(TF_DLL) || defined(TF_CLIENT_DLL)
-#include "tf_gamerules.h"
+	#include "tf_gamerules.h"
 #endif
+
 
 ConVar	cc_achievement_debug( "achievement_debug", "0", FCVAR_CHEAT | FCVAR_REPLICATED, "Turn on achievement debug msgs." );
 
@@ -89,21 +88,9 @@ static void WriteAchievementGlobalState( KeyValues *pKV, bool bPersistToSteamClo
 //=============================================================================
 
 {
-#ifdef _X360
-	if ( XBX_GetStorageDeviceId() == XBX_INVALID_STORAGE_ID || XBX_GetStorageDeviceId() == XBX_STORAGE_DECLINED )
-		return;
-#endif
-
 	char szFilename[_MAX_PATH];
 
-	if ( IsX360() )
-	{
-		Q_snprintf( szFilename, sizeof( szFilename ), "cfg:/%s_GameState.txt", COM_GetModDirectory() );
-	}
-	else
-	{
-		Q_snprintf( szFilename, sizeof( szFilename ), "GameState.txt" );
-	}
+	Q_snprintf(szFilename, sizeof(szFilename), "GameState.txt");
 
 	// Never call pKV->SaveToFile!!!!
 	// Save to a buffer instead.
@@ -120,14 +107,7 @@ static void WriteAchievementGlobalState( KeyValues *pKV, bool bPersistToSteamClo
     if ( bPersistToSteamCloud )
     {
 #ifndef NO_STEAM
-		if ( IsX360() )
-        {
-            Q_snprintf( szFilename, sizeof( szFilename ), "cfg:/%s_GameState.txt", COM_GetModDirectory() );
-        }
-        else
-        {
-            Q_snprintf( szFilename, sizeof( szFilename ), "GameState.txt" );
-        }
+		Q_snprintf(szFilename, sizeof(szFilename), "GameState.txt");
 
         ISteamRemoteStorage *pRemoteStorage = SteamClient()?(ISteamRemoteStorage *)SteamClient()->GetISteamGenericInterface(
             SteamAPI_GetHSteamUser(), SteamAPI_GetHSteamPipe(), STEAMREMOTESTORAGE_INTERFACE_VERSION ):NULL;
@@ -178,12 +158,6 @@ static void WriteAchievementGlobalState( KeyValues *pKV, bool bPersistToSteamClo
     // HPE_END
     //=============================================================================
 
-#ifdef _X360
-	if ( xboxsystem )
-	{
-		xboxsystem->FinishContainerWrites();
-	}
-#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -341,12 +315,6 @@ void CAchievementMgr::PostInit()
 	if ( !g_AchievementSaveThread.IsAlive() )
 	{
 		g_AchievementSaveThread.Start();
-#ifdef WIN32
-		if ( IsX360() )
-		{
-			ThreadSetAffinity( (ThreadHandle_t)g_AchievementSaveThread.GetThreadHandle(), XBOX_PROCESSOR_3 );
-		}
-#endif // WIN32
 	}
 
 	// get current game dir
@@ -390,7 +358,7 @@ void CAchievementMgr::PostInit()
 	// load global state from file
 	LoadGlobalState();
 
-	// download achievements/stats from Steam/XBox Live
+	// download achievements/stats from Steam
 	DownloadUserData();
 
 }
@@ -494,10 +462,10 @@ void CAchievementMgr::LevelInitPreEntity()
 	EnsureGlobalStateLoaded();
 
 #ifdef GAME_DLL
-	// For single-player games, achievement mgr must live on the server.  (Only the server has detailed knowledge of game state.)
+	// For single-player games, achievement mgr must live on the server.  ( Only the server has detailed knowledge of game state. )
 	Assert( !GameRules()->IsMultiplayer() );	
 #else
-	// For multiplayer games, achievement mgr must live on the client.  (Only the client can read/write player state from Steam/XBox Live.)
+	// For multiplayer games, achievement mgr must live on the client.  ( Only the client can read/write player state from Steam. )
 	Assert( GameRules()->IsMultiplayer() );
 #endif 
 
@@ -512,23 +480,13 @@ void CAchievementMgr::LevelInitPreEntity()
 	m_flTeamplayStartTime = 0;
 	m_iMiniroundsCompleted = 0;
 
-	// client and server have map names available in different forms (full path on client, just file base name on server), 
+	// client and server have map names available in different forms ( full path on client, just file base name on server ), 
 	// cache it in base file name form here so we don't have to have different code paths each time we access it
 #ifdef CLIENT_DLL	
 	Q_FileBase( engine->GetLevelName(), m_szMap, ARRAYSIZE( m_szMap ) );
 #else
 	Q_strncpy( m_szMap, gpGlobals->mapname.ToCStr(), ARRAYSIZE( m_szMap ) );
 #endif // CLIENT_DLL
-
-	if ( IsX360() )
-	{
-		// need to remove the .360 extension on the end of the map name
-		char *pExt = Q_stristr( m_szMap, ".360" );
-		if ( pExt )
-		{
-			*pExt = '\0';
-		}
-	}
 
 	// look through all achievements, see which ones we want to have listen for events
 	FOR_EACH_MAP( m_mapAchievement, iAchievement )
@@ -628,72 +586,17 @@ bool CAchievementMgr::HasAchieved( const char *pchName )
 }
 
 //-----------------------------------------------------------------------------
-// Purpose: downloads user data from Steam or XBox Live
+// Purpose: downloads user data from Steam
 //-----------------------------------------------------------------------------
 void CAchievementMgr::DownloadUserData()
 {
-	if ( IsPC() )
-	{
-#ifndef NO_STEAM
+	#ifndef NO_STEAM
 		if ( steamapicontext->SteamUserStats() )
 		{
 			// request stat download; will get called back at OnUserStatsReceived when complete
 			steamapicontext->SteamUserStats()->RequestCurrentStats();
 		}
-#endif
-	}
-	else if ( IsX360() )
-	{
-#if defined( _X360 )
-		if ( XBX_GetPrimaryUserId() == INVALID_USER_ID )
-			return;
-
-		// Download achievements from XBox Live
-		bool bDownloadSuccessful = true;
-		int nTotalAchievements = 99;
-		uint bytes;
-		int ret = xboxsystem->EnumerateAchievements( XBX_GetPrimaryUserId(), 0, 0, nTotalAchievements, &bytes, 0, false );
-		if ( ret != ERROR_SUCCESS )
-		{
-			Warning( "Enumerate Achievements failed! Error %d", ret );
-			bDownloadSuccessful = false;
-		}
-		
-		// Enumerate the achievements from Live
-		void *pBuffer = new byte[bytes];
-		if ( bDownloadSuccessful )
-		{
-			ret = xboxsystem->EnumerateAchievements( XBX_GetPrimaryUserId(), 0, 0, nTotalAchievements, pBuffer, bytes, false );
-
-			if ( ret != nTotalAchievements )
-			{
-				Warning( "Enumerate Achievements failed! Error %d", ret );
-				bDownloadSuccessful = false;
-			}
-		}
-
-		if ( bDownloadSuccessful )
-		{
-			// Give live a chance to mark achievements as unlocked, in case the achievement manager
-			// wasn't able to get that data (storage device missing, read failure, etc)
-			XACHIEVEMENT_DETAILS *pXboxAchievements = (XACHIEVEMENT_DETAILS*)pBuffer;
-			for ( int i = 0; i < nTotalAchievements; ++i )
-			{
-				CBaseAchievement *pAchievement = GetAchievementByID( pXboxAchievements[i].dwId );
-				if ( !pAchievement )
-					continue;
-
-				// Give Live a chance to claim the achievement as unlocked
-				if ( AchievementEarned( pXboxAchievements[i].dwFlags ) )
-				{
-					pAchievement->SetAchieved( true );
-				}
-			}
-		}
-
-		delete pBuffer;
-#endif // X360
-	}
+	#endif
 }
 
 const char *COM_GetModDirectory()
@@ -719,9 +622,7 @@ const char *COM_GetModDirectory()
 //-----------------------------------------------------------------------------
 void CAchievementMgr::UploadUserData()
 {
-	if ( IsPC() )
-	{
-#ifndef NO_STEAM
+	#ifndef NO_STEAM
 		if ( steamapicontext->SteamUserStats() )
 		{
 			// Upload current Steam client achievements & stats state to Steam.  Will get called back at OnUserStatsStored when complete.
@@ -729,8 +630,7 @@ void CAchievementMgr::UploadUserData()
 			steamapicontext->SteamUserStats()->StoreStats();
 			m_bSteamDataDirty = false;
 		}
-#endif
-	}
+	#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -738,24 +638,9 @@ void CAchievementMgr::UploadUserData()
 //-----------------------------------------------------------------------------
 void CAchievementMgr::LoadGlobalState()
 {
-	if ( IsX360() )
-	{
-#ifdef _X360
-		if ( XBX_GetStorageDeviceId() == XBX_INVALID_STORAGE_ID || XBX_GetStorageDeviceId() == XBX_STORAGE_DECLINED )
-			return;
-#endif
-	}
-
 	char	szFilename[_MAX_PATH];
 
-	if ( IsX360() )
-	{
-		Q_snprintf( szFilename, sizeof( szFilename ), "cfg:/%s_GameState.txt", COM_GetModDirectory() );
-	}
-	else
-	{
-		Q_snprintf( szFilename, sizeof( szFilename ), "GameState.txt" );
-	}
+	Q_snprintf(szFilename, sizeof(szFilename), "GameState.txt");
 
     //=============================================================================
     // HPE_BEGIN
@@ -948,10 +833,8 @@ void CAchievementMgr::AwardAchievement( int iAchievementID )
 
 	// save state at next good opportunity.  (Don't do it immediately, may hitch at bad time.)
 	SetDirty( true );
-
-	if ( IsPC() )
-	{		
-#ifndef NO_STEAM
+	
+	#ifndef NO_STEAM
 		if ( steamapicontext->SteamUserStats() )
 		{
 			VPROF_BUDGET( "AwardAchievement", VPROF_BUDGETGROUP_STEAM );
@@ -963,15 +846,7 @@ void CAchievementMgr::AwardAchievement( int iAchievementID )
 				m_AchievementsAwarded.AddToTail( iAchievementID );
 			}
 		}
-#endif
-    }
-	else if ( IsX360() )
-	{
-#ifdef _X360
-		if ( xboxsystem )
-			xboxsystem->AwardAchievement( XBX_GetPrimaryUserId(), iAchievementID );
-#endif
-	}
+	#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -1034,20 +909,11 @@ extern bool IsInCommentaryMode( void );
 bool CAchievementMgr::CheckAchievementsEnabled()
 {
 	// if PC, Steam must be running and user logged in
-	if ( IsPC() && !LoggedIntoSteam() )
+	if ( !LoggedIntoSteam() )
 	{
 		Msg( "Achievements disabled: Steam not running.\n" );
 		return false;
 	}
-
-#if defined( _X360 )
-	uint state = XUserGetSigninState( XBX_GetPrimaryUserId() );
-	if ( state == eXUserSigninState_NotSignedIn )
-	{
-		Msg( "Achievements disabled: not signed in to XBox user account.\n" );
-		return false;
-	}
-#endif
 
 	// can't be in commentary mode, user is invincible
 	if ( IsInCommentaryMode() )
@@ -1107,12 +973,10 @@ bool CAchievementMgr::CheckAchievementsEnabled()
 	return true;
 #endif
 
-	if ( IsPC() )
+	// Don't award achievements if cheats are turned on.  
+	if ( WereCheatsEverOn() )
 	{
-		// Don't award achievements if cheats are turned on.  
-		if ( WereCheatsEverOn() )
-		{
-#ifndef NO_STEAM
+		#ifndef NO_STEAM
 			// Cheats get turned on automatically if you run with -dev which many people do internally, so allow cheats if developer is turned on and we're not running
 			// on Steam public
 			if ( developer.GetInt() == 0 || !steamapicontext->SteamUtils() || (k_EUniversePublic == steamapicontext->SteamUtils()->GetConnectedUniverse()) )
@@ -1120,8 +984,7 @@ bool CAchievementMgr::CheckAchievementsEnabled()
 				Msg( "Achievements disabled: cheats turned on in this app session.\n" );
 				return false;
 			}
-#endif
-		}
+		#endif
 	}
 
 	return true;
@@ -1150,28 +1013,12 @@ bool CalcPlayersOnFriendsList( int iMinFriends )
 
 	// determine local player team
 	int iLocalPlayerIndex =  GetLocalPlayerIndex();
-	uint64 XPlayerUid = 0;
 
-	if ( IsPC() )
-	{
-#ifndef NO_STEAM
+	#ifndef NO_STEAM
 		if ( !steamapicontext->SteamFriends() || !steamapicontext->SteamUtils() || !g_pGameRules->IsMultiplayer() )
-#endif
+	#endif
 			return false;
 
-	}
-	else if ( IsX360() )
-	{
-		if ( !matchmaking )
-			return false;
-
-		XPlayerUid = XBX_GetPrimaryUserId();
-	}
-	else
-	{
-		// other platforms...?
-		return false;
-	}
 	// Loop through the players
 	int iTotalFriends = 0;
 	for( int iPlayerIndex = 1 ; iPlayerIndex <= MAX_PLAYERS; iPlayerIndex++ )
@@ -1179,31 +1026,20 @@ bool CalcPlayersOnFriendsList( int iMinFriends )
 		// find all players who are on the local player's team
 		if( ( iPlayerIndex != iLocalPlayerIndex ) && ( g_PR->IsConnected( iPlayerIndex ) ) )
 		{
-			if ( IsPC() )
-			{
-				player_info_t pi;
-				if ( !engine->GetPlayerInfo( iPlayerIndex, &pi ) )
-					continue;
-				if ( !pi.friendsID )
-					continue;
-#ifndef NO_STEAM
+			player_info_t pi;
+
+			if ( !engine->GetPlayerInfo( iPlayerIndex, &pi ) )
+				continue;
+
+			if ( !pi.friendsID )
+				continue;
+
+			#ifndef NO_STEAM
 				// check and see if they're on the local player's friends list
 				CSteamID steamID( pi.friendsID, 1, steamapicontext->SteamUtils()->GetConnectedUniverse(), k_EAccountTypeIndividual );
 				if ( !steamapicontext->SteamFriends()->HasFriend( steamID, /*k_EFriendFlagImmediate*/ 0x04 ) )
 					continue;
-#endif
-			}
-			else if ( IsX360() )
-			{
-				uint64 XUid[1];
-				XUid[0] = matchmaking->PlayerIdToXuid( iPlayerIndex );
-				BOOL bFriend;
-#ifdef _X360
-				XUserAreUsersFriends( XPlayerUid, XUid, 1, &bFriend, NULL );
-#endif // _X360
-				if ( !bFriend )
-					continue;
-			}
+			#endif
 
 			iTotalFriends++;
 		}
@@ -1221,57 +1057,43 @@ bool CalcHasNumClanPlayers( int iClanTeammates )
 {
 	Assert( g_pGameRules->IsMultiplayer() );
 
-	if ( IsPC() )
+	// Do a cheap rejection: check teammate count first to see if we even need to bother checking w/Steam
+	// Subtract 1 for the local player.
+	if ( CalcPlayerCount()-1 < iClanTeammates )
+		return false;
+
+	if ( !steamapicontext->SteamFriends() || !steamapicontext->SteamUtils() || !g_pGameRules->IsMultiplayer() )
+		return false;
+
+	// determine local player team
+	int iLocalPlayerIndex =  GetLocalPlayerIndex();
+
+	for ( int iClan = 0; iClan < steamapicontext->SteamFriends()->GetClanCount(); iClan++ )
 	{
-#ifndef _X360
-		// Do a cheap rejection: check teammate count first to see if we even need to bother checking w/Steam
-		// Subtract 1 for the local player.
-		if ( CalcPlayerCount()-1 < iClanTeammates )
-			return false;
-
-		if ( !steamapicontext->SteamFriends() || !steamapicontext->SteamUtils() || !g_pGameRules->IsMultiplayer() )
-			return false;
-
-		// determine local player team
-		int iLocalPlayerIndex =  GetLocalPlayerIndex();
-
-		for ( int iClan = 0; iClan < steamapicontext->SteamFriends()->GetClanCount(); iClan++ )
+		int iClanMembersOnTeam = 0;
+		CSteamID clanID = steamapicontext->SteamFriends()->GetClanByIndex( iClan );
+		// enumerate all players
+		for( int iPlayerIndex = 1 ; iPlayerIndex <= MAX_PLAYERS; iPlayerIndex++ )
 		{
-			int iClanMembersOnTeam = 0;
-			CSteamID clanID = steamapicontext->SteamFriends()->GetClanByIndex( iClan );
-			// enumerate all players
-			for( int iPlayerIndex = 1 ; iPlayerIndex <= MAX_PLAYERS; iPlayerIndex++ )
+			if( ( iPlayerIndex != iLocalPlayerIndex ) && ( g_PR->IsConnected( iPlayerIndex ) ) )
 			{
-				if( ( iPlayerIndex != iLocalPlayerIndex ) && ( g_PR->IsConnected( iPlayerIndex ) ) )
-				{
-					player_info_t pi;
-					if ( engine->GetPlayerInfo( iPlayerIndex, &pi ) && ( pi.friendsID ) )
-					{	
-						// check and see if they're on the local player's friends list
-						CSteamID steamID( pi.friendsID, 1, steamapicontext->SteamUtils()->GetConnectedUniverse(), k_EAccountTypeIndividual );
-						if ( steamapicontext->SteamFriends()->IsUserInSource( steamID, clanID ) )
-						{
-							iClanMembersOnTeam++;
-							if ( iClanMembersOnTeam == iClanTeammates )
-								return true;
-						}
+				player_info_t pi;
+				if ( engine->GetPlayerInfo( iPlayerIndex, &pi ) && ( pi.friendsID ) )
+				{	
+					// check and see if they're on the local player's friends list
+					CSteamID steamID( pi.friendsID, 1, steamapicontext->SteamUtils()->GetConnectedUniverse(), k_EAccountTypeIndividual );
+					if ( steamapicontext->SteamFriends()->IsUserInSource( steamID, clanID ) )
+					{
+						iClanMembersOnTeam++;
+						if ( iClanMembersOnTeam == iClanTeammates )
+							return true;
 					}
 				}
 			}
 		}
-#endif
-		return false;
 	}
-	else if ( IsX360() )
-	{
-		// TODO: implement for 360
-		return false;
-	}
-	else 
-	{
-		// other platforms...?
-		return false;
-	}
+
+	return false;
 }
 
 //-----------------------------------------------------------------------------
@@ -1321,12 +1143,6 @@ int	CalcPlayerCount()
 //-----------------------------------------------------------------------------
 void CAchievementMgr::ResetAchievements()
 {
-	if ( !IsPC() )
-	{
-		DevMsg( "Only available on PC\n" );
-		return;
-	}
-
 	if ( !LoggedIntoSteam() )
 	{
 		Msg( "Steam not running, achievements disabled. Cannot reset achievements.\n" );
@@ -1353,12 +1169,6 @@ void CAchievementMgr::ResetAchievements()
 
 void CAchievementMgr::ResetAchievement( int iAchievementID )
 {
-	if ( !IsPC() )
-	{
-		DevMsg( "Only available on PC\n" );
-		return;
-	}
-
 	if ( !LoggedIntoSteam() )
 	{
 		Msg( "Steam not running, achievements disabled. Cannot reset achievements.\n" );
@@ -1388,7 +1198,7 @@ void CAchievementMgr::ResetAchievement( int iAchievementID )
 //-----------------------------------------------------------------------------
 void CAchievementMgr::PrintAchievementStatus()
 {
-	if ( IsPC() && !LoggedIntoSteam() )
+	if ( !LoggedIntoSteam() )
 	{
 		Msg( "Steam not running, achievements disabled. Cannot view or unlock achievements.\n" );
 		return;

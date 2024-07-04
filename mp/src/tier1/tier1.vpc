@@ -48,19 +48,20 @@ $Project "tier1"
 		$File	"NetAdr.cpp"
 		$File	"splitstring.cpp"
 		$File	"math_proxy.cpp" [$POSIX]
-		$File	"processor_detect.cpp" [$WINDOWS||$X360]
+
+		$File	"processor_detect.cpp" [$WINDOWS]
 		{
 			$Configuration
 			{
 				$Compiler
 				{
-					$EnableC++Exceptions	"Yes (/EHsc)" [!$X360]
+					$EnableC++Exceptions	"Yes (/EHsc)"
 				}
 			}
 		}
 		
 		$File	"processor_detect_linux.cpp"	[$POSIX]
-		$File	"qsort_s.cpp"	[$LINUXALL||$PS3]
+		$File	"qsort_s.cpp"	[$LINUXALL]
 		$File	"rangecheckedvar.cpp"
 		$File	"reliabletimer.cpp"
 		$File	"stringpool.cpp"

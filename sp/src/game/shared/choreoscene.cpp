@@ -7,8 +7,8 @@
 //=============================================================================//
 
 
-#if defined(_WIN32) && !defined(_X360)
-#include <windows.h>
+#if defined(_WIN32)
+	#include <windows.h>
 #endif
 
 #include "basetypes.h"

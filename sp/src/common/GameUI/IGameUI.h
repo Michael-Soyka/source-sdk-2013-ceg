@@ -6,17 +6,16 @@
 //=============================================================================//
 
 #ifndef IGAMEUI_H
-#define IGAMEUI_H
+	#define IGAMEUI_H
+
 #ifdef _WIN32
-#pragma once
+	#pragma once
 #endif
 
 #include "interface.h"
 #include "vgui/IPanel.h"
 
-#if !defined( _X360 )
 #include "xbox/xboxstubs.h"
-#endif
 
 // reasons why the user can't connect to a game server
 enum ESteamLoginFailure
@@ -96,12 +95,6 @@ public:
 	virtual void BonusMapNumMedals( int piNumMedals[ 3 ] ) = 0;
 
 	virtual void OnConnectToServer2(const char *game, int IP, int connectionPort, int queryPort) = 0;
-
-	// X360 Storage device validation:
-	//		returns true right away if storage device has been previously selected.
-	//		otherwise returns false and will set the variable pointed by pStorageDeviceValidated to 1
-	//				  once the storage device is selected by user.
-	virtual bool ValidateStorageDevice( int *pStorageDeviceValidated ) = 0;
 
 	virtual void SetProgressOnStart() = 0;
 	virtual void OnDisconnectFromServer( uint8 eSteamLoginFailure ) = 0;

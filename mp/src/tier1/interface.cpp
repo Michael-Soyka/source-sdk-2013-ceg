@@ -3,16 +3,16 @@
 // Purpose: 
 //
 //===========================================================================//
-#if defined( _WIN32 ) && !defined( _X360 )
-#include <windows.h>
+#if defined( _WIN32 ) 
+	#include <windows.h>
 #endif
 
 #if !defined( DONT_PROTECT_FILEIO_FUNCTIONS )
-#define DONT_PROTECT_FILEIO_FUNCTIONS // for protected_things.h
+	#define DONT_PROTECT_FILEIO_FUNCTIONS // for protected_things.h
 #endif
 
 #if defined( PROTECTED_THINGS_ENABLE )
-#undef PROTECTED_THINGS_ENABLE // from protected_things.h
+	#undef PROTECTED_THINGS_ENABLE // from protected_things.h
 #endif
 
 #include <stdio.h>
@@ -25,20 +25,18 @@
 #include "tier0/icommandline.h"
 #include "tier0/dbg.h"
 #include "tier0/threadtools.h"
-#ifdef _WIN32
-#include <direct.h> // getcwd
-#elif POSIX
-#include <dlfcn.h>
-#include <unistd.h>
-#define _getcwd getcwd
-#endif
-#if defined( _X360 )
-#include "xbox/xbox_win32stubs.h"
-#endif
 
+#ifdef _WIN32
+	#include <direct.h> // getcwd
+#elif POSIX
+	#include <dlfcn.h>
+	#include <unistd.h>
+	#define _getcwd getcwd
+#endif
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+
 
 // ------------------------------------------------------------------------------------ //
 // InterfaceReg.
@@ -123,7 +121,7 @@ void *GetModuleHandle(const char *name)
 }
 #endif
 
-#if defined( _WIN32 ) && !defined( _X360 )
+#if defined( _WIN32 ) 
 #define WIN32_LEAN_AND_MEAN
 #include "windows.h"
 #endif
@@ -146,11 +144,11 @@ static void *Sys_GetProcAddress( const char *pModuleName, const char *pName )
 #if !defined(LINUX)
 static void *Sys_GetProcAddress( HMODULE hModule, const char *pName )
 {
-#ifdef WIN32
-	return (void *)GetProcAddress( hModule, pName );
-#else
-	return (void *)dlsym( (void *)hModule, pName );
-#endif
+	#ifdef WIN32
+		return (void *)GetProcAddress( hModule, pName );
+	#else
+		return (void *)dlsym( (void *)hModule, pName );
+	#endif
 }
 #endif
 
@@ -167,24 +165,20 @@ struct ThreadedLoadLibaryContext_t
 
 #ifdef _WIN32
 
-// wraps LoadLibraryEx() since 360 doesn't support that
-static HMODULE InternalLoadLibrary( const char *pName, Sys_Flags flags )
-{
-#if defined(_X360)
-	return LoadLibrary( pName );
-#else
-	if ( flags & SYS_NOLOAD )
-		return GetModuleHandle( pName );
-	else
-		return LoadLibraryEx( pName, NULL, LOAD_WITH_ALTERED_SEARCH_PATH );
-#endif
-}
-unsigned ThreadedLoadLibraryFunc( void *pParam )
-{
-	ThreadedLoadLibaryContext_t *pContext = (ThreadedLoadLibaryContext_t*)pParam;
-	pContext->m_hLibrary = InternalLoadLibrary( pContext->m_pLibraryName, SYS_NOFLAGS );
-	return 0;
-}
+	static HMODULE InternalLoadLibrary( const char *pName, Sys_Flags flags )
+	{
+		if ( flags & SYS_NOLOAD )
+			return GetModuleHandle( pName );
+		else
+			return LoadLibraryEx( pName, NULL, LOAD_WITH_ALTERED_SEARCH_PATH );
+	}
+
+	unsigned ThreadedLoadLibraryFunc( void *pParam )
+	{
+		ThreadedLoadLibaryContext_t *pContext = (ThreadedLoadLibaryContext_t*)pParam;
+		pContext->m_hLibrary = InternalLoadLibrary( pContext->m_pLibraryName, SYS_NOFLAGS );
+		return 0;
+	}
 
 #endif // _WIN32
 
@@ -198,19 +192,8 @@ HMODULE Sys_LoadLibrary( const char *pLibraryName, Sys_Flags flags )
 
 	Q_strncpy( str, pLibraryName, sizeof(str) );
 
-	if ( IsX360() )
-	{
-		// old, probably busted, behavior for xbox
-		if ( !Q_stristr( str, pModuleExtension ) )
-		{
-			V_SetExtension( str, pModuleExtension, sizeof(str) );
-		}
-	}
-	else
-	{
-		// always force the final extension to be .dll
-		V_SetExtension( str, pModuleExtension, sizeof(str) );
-	}
+	// always force the final extension to be .dll
+	V_SetExtension( str, pModuleExtension, sizeof(str) );
 
 	Q_FixSlashes( str );
 
@@ -227,10 +210,6 @@ HMODULE Sys_LoadLibrary( const char *pLibraryName, Sys_Flags flags )
 	context.m_hLibrary = 0;
 
 	ThreadHandle_t h = CreateSimpleThread( ThreadedLoadLibraryFunc, &context );
-
-#ifdef _X360
-	ThreadSetAffinity( h, XBOX_PROCESSOR_3 );
-#endif
 
 	unsigned int nTimeout = 0;
 	while( ThreadWaitForObject( h, true, nTimeout ) == TW_TIMEOUT )
@@ -279,14 +258,7 @@ CSysModule *Sys_LoadModule( const char *pModuleName, Sys_Flags flags /* = SYS_NO
 	{
 		// full path wasn't passed in, using the current working dir
 		_getcwd( szCwd, sizeof( szCwd ) );
-		if ( IsX360() )
-		{
-			int i = CommandLine()->FindParm( "-basedir" );
-			if ( i )
-			{
-				V_strcpy_safe( szCwd, CommandLine()->GetParm( i + 1 ) );
-			}
-		}
+
 		if (szCwd[strlen(szCwd) - 1] == '/' || szCwd[strlen(szCwd) - 1] == '\\' )
 		{
 			szCwd[strlen(szCwd) - 1] = 0;
@@ -314,7 +286,7 @@ CSysModule *Sys_LoadModule( const char *pModuleName, Sys_Flags flags /* = SYS_NO
 		if ( !hDLL )
 		{
 // So you can see what the error is in the debugger...
-#if defined( _WIN32 ) && !defined( _X360 )
+#if defined( _WIN32 ) 
 			char *lpMsgBuf;
 			
 			FormatMessage( 
@@ -330,9 +302,6 @@ CSysModule *Sys_LoadModule( const char *pModuleName, Sys_Flags flags /* = SYS_NO
 			);
 
 			LocalFree( (HLOCAL)lpMsgBuf );
-#elif defined( _X360 )
-			DWORD error = GetLastError();
-			Msg( "Error(%d) - Failed to load %s:\n", error, pModuleName );
 #else
 			Msg( "Failed to load %s: %s\n", pModuleName, dlerror() );
 #endif // _WIN32
@@ -344,7 +313,7 @@ CSysModule *Sys_LoadModule( const char *pModuleName, Sys_Flags flags /* = SYS_NO
 	// If running in the debugger, assume debug binaries are okay, otherwise they must run with -allowdebug
 	if ( Sys_GetProcAddress( hDLL, "BuiltDebug" ) )
 	{
-		if ( !IsX360() && hDLL && 
+		if ( hDLL && 
 			 !CommandLine()->FindParm( "-allowdebug" ) && 
 			 !Sys_IsDebuggerPresent() )
 		{

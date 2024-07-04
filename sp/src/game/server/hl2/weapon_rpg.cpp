@@ -997,11 +997,11 @@ void CAPCMissile::Init()
 	m_flLastHomingSpeed = APC_HOMING_SPEED;
 	CreateDangerSounds( true );
 
-
-	if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
-	{
-		AddFlag( FL_AIMTARGET );
-	}
+	//TODO: Adapt console auto-aim for PC
+	//if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
+	//{
+	//	AddFlag( FL_AIMTARGET );
+	//}
 }
 
 
@@ -1932,14 +1932,15 @@ void CWeaponRPG::UpdateLaserPosition( Vector vecMuzzlePos, Vector vecEndPos )
 		vecMuzzlePos = pPlayer->Weapon_ShootPosition();
 		Vector	forward;
 
-		if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
-		{
-			forward = pPlayer->GetAutoaimVector( AUTOAIM_SCALE_DEFAULT );	
-		}
-		else
-		{
-			pPlayer->EyeVectors( &forward );
-		}
+		//TODO: Adapt console auto-aim for PC
+		//if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
+		//{
+		//	forward = pPlayer->GetAutoaimVector( AUTOAIM_SCALE_DEFAULT );	
+		//}
+		//else
+		//{
+		pPlayer->EyeVectors( &forward );
+		//}
 
 		vecEndPos = vecMuzzlePos + ( forward * MAX_TRACE_LENGTH );
 	}

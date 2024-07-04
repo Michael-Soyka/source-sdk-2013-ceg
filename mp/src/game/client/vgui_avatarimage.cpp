@@ -9,13 +9,10 @@
 #include <vgui_controls/Panel.h>
 #include <vgui/ISurface.h>
 #include "vgui_avatarimage.h"
-#if defined( _X360 )
-#include "xbox/xbox_win32stubs.h"
-#endif
 #include "steam/steam_api.h"
 
-DECLARE_BUILD_FACTORY( CAvatarImagePanel );
 
+DECLARE_BUILD_FACTORY( CAvatarImagePanel );
 
 CUtlMap< AvatarImagePair_t, int> CAvatarImage::s_AvatarImageCache; // cache of steam id's to textureids to use for images
 bool CAvatarImage::m_sbInitializedAvatarCache = false;

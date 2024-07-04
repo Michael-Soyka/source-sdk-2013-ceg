@@ -79,10 +79,8 @@ void CSoundscapeSystem::AddSoundscapeFile( const char *filename )
 				}
 				m_soundscapes.AddString( pKeys->GetName(), m_soundscapeCount );
 
-				if ( IsX360() )
-				{
-					AddSoundscapeSounds( pKeys, m_soundscapeCount );
-				}
+				AddSoundscapeSounds( pKeys, m_soundscapeCount );
+
 				m_soundscapeCount++;
 			}
 			pKeys = pKeys->GetNextKey();
@@ -183,10 +181,7 @@ void CSoundscapeSystem::Shutdown()
 	m_soundscapeEntities.RemoveAll();
 	m_activeIndex = 0;
 
-	if ( IsX360() )
-	{
-		m_soundscapeSounds.Purge();
-	}
+	m_soundscapeSounds.Purge();
 }
 
 void CSoundscapeSystem::LevelInitPreEntity()
@@ -197,20 +192,20 @@ void CSoundscapeSystem::LevelInitPreEntity()
 
 void CSoundscapeSystem::LevelInitPostEntity()
 {
-	if ( IsX360() )
-	{
-		m_soundscapeSounds.Purge();
-	}
+	m_soundscapeSounds.Purge();
+
 	CUtlVector<bbox_t> clusterbounds;
 	int clusterCount = engine->GetClusterCount();
 	clusterbounds.SetCount( clusterCount );
 	engine->GetAllClusterBounds( clusterbounds.Base(), clusterCount );
 	m_soundscapesInCluster.SetCount(clusterCount);
+
 	for ( int i = 0; i < clusterCount; i++ )
 	{
 		m_soundscapesInCluster[i].soundscapeCount = 0;
 		m_soundscapesInCluster[i].firstSoundscape = 0;
 	}
+
 	unsigned char myPVS[16 * 1024];
 	CUtlVector<short> clusterIndexList;
 	CUtlVector<short> soundscapeIndexList;
@@ -367,11 +362,6 @@ void CSoundscapeSystem::FrameUpdatePostEntityThink()
 
 void CSoundscapeSystem::AddSoundscapeSounds( KeyValues *pSoundscape, int soundscapeIndex )
 {
-	if ( !IsX360() )
-	{
-		return;
-	}
-
 	int i = m_soundscapeSounds.AddToTail();
 	Assert( i == soundscapeIndex );
 
@@ -431,11 +421,6 @@ void CSoundscapeSystem::AddSoundscapeSounds( KeyValues *pSoundscape, int soundsc
 
 void CSoundscapeSystem::PrecacheSounds( int soundscapeIndex )
 {
-	if ( !IsX360() )
-	{
-		return;
-	}
-
 	if ( !IsValidIndex( soundscapeIndex ) )
 	{
 		return;

@@ -44,10 +44,8 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+
 extern ConVar think_limit;
-#ifdef _XBOX
-ConVar vprof_think_limit( "vprof_think_limit", "0" );
-#endif
 
 ConVar vprof_scope_entity_thinks( "vprof_scope_entity_thinks", "0" );
 ConVar vprof_scope_entity_gamephys( "vprof_scope_entity_gamephys", "0" );
@@ -954,13 +952,6 @@ void CBaseEntity::PhysicsDispatchThink( BASEPTR thinkFunc )
 		float ftime = ( engine->Time() - startTime ) * 1000.0f;
 		if ( ftime > thinkLimit )
 		{
-#if defined( _XBOX ) && !defined( _RETAIL )
-			if ( vprof_think_limit.GetBool() )
-			{
-				extern bool g_VProfSignalSpike;
-				g_VProfSignalSpike = true;
-			}
-#endif
 			// If its an NPC print out the shedule/task that took so long
 			CAI_BaseNPC *pNPC = MyNPCPointer();
 			if (pNPC && pNPC->GetCurSchedule())
@@ -969,13 +960,13 @@ void CBaseEntity::PhysicsDispatchThink( BASEPTR thinkFunc )
 			}
 			else
 			{
-#ifdef _WIN32
-				Msg( "%s(%s) thinking for %.02f ms!!!\n", GetClassname(), typeid(this).raw_name(), ftime );
-#elif POSIX
-				Msg( "%s(%s) thinking for %.02f ms!!!\n", GetClassname(), typeid(this).name(), ftime );
-#else
-#error "typeinfo"
-#endif
+				#ifdef _WIN32
+					Msg( "%s(%s) thinking for %.02f ms!!!\n", GetClassname(), typeid(this).raw_name(), ftime );
+				#elif POSIX
+					Msg( "%s(%s) thinking for %.02f ms!!!\n", GetClassname(), typeid(this).name(), ftime );
+				#else
+					#error "typeinfo"
+				#endif
 			}
 		}
 	}

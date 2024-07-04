@@ -93,19 +93,15 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined( WIN32) && !defined( _X360 )
-#define STRICT
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#elif !defined(_X360)
-#define far
-#define near
-#define INVALID_HANDLE_VALUE (void*)-1
-#define _tzset tzset
-#endif
-
-#if defined( _X360 )
-#include "xbox/xbox_win32stubs.h"
+#if defined( WIN32)
+  #define STRICT
+  #define WIN32_LEAN_AND_MEAN
+  #include <windows.h>
+#else
+  #define far
+  #define near
+  #define INVALID_HANDLE_VALUE (void*)-1
+  #define _tzset tzset
 #endif
 
 #include <time.h>

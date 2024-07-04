@@ -279,11 +279,8 @@ extern "C" {
 #define ACHIEVEMENT_TF_GET_HEADSHOTS                145
 #define ACHIEVEMENT_PORTAL_DETACH_ALL_CAMERAS       146
 #define ACHIEVEMENT_PORTAL_HIT_TURRET_WITH_TURRET   148
-
-#ifndef _XBOX
 #define ACHIEVEMENT_PORTAL_TRANSMISSION_RECEIVED	149
 #define ACHIEVEMENT_TF_GENERAL_KILL_ENEMIES_AFTER_TELEPORTING	150
-#endif // _XBOX
 
 #define ACHIEVEMENT_TF_LAST_ORANGEBOX				150
 
@@ -345,24 +342,14 @@ extern "C" {
 #define STATS_COLUMN_PLAYER_MAX_RANKED_POINTS_SCORED 2
 
 //
-// Matchmaking queries
-//
-// These values are passed as the dwProcedureIndex parameter to
-// XSessionSearch to indicate which matchmaking query to run.
-//
-
-#define SESSION_MATCH_QUERY_PLAYER_MATCH            0
-
-//
 // Gamer pictures
 //
 // These ids are passed as the dwPictureId parameter to XUserAwardGamerTile.
 //
 
 
-
 #ifdef __cplusplus
-}
+	}
 #endif
 
 #endif // __THE_ORANGE_BOX_SPA_H__

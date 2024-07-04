@@ -31,7 +31,6 @@ using namespace vgui;
 
 
 bool uselogfile = false;
-bool bX360 = false;
 
 struct AnalysisData
 {
@@ -418,12 +417,6 @@ void CCompileCaptionsApp::CompileCaptionFile( char const *infile, char const *ou
 	out.SeekPut( CUtlBuffer::SEEK_HEAD, savePos );
 
 	g_pFullFileSystem->WriteFile( outfile, NULL, out );
-
-	// Jeep: this function no longer exisits
-	/*if ( bX360 )
-	{
-		UpdateOrCreateCaptionFile_X360( g_pFullFileSystem, outfile, NULL, true );
-	}*/
 }
 
 void CCompileCaptionsApp::DescribeCaptions( char const *file )
@@ -496,14 +489,11 @@ int CCompileCaptionsApp::Main()
 		{
 			switch( CommandLine()->GetParm( i )[ 1 ] )
 			{
-			case 'l':
+			case 'l': 
 				uselogfile = true;
 				break;
 			case 'v':
 				verbose = true;
-				break;
-			case 'x':
-				bX360 = true;
 				break;
 			case 'g': // -game
 				++i;

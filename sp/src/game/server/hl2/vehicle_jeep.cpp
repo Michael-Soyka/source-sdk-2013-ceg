@@ -738,17 +738,18 @@ void CPropJeep::Think( void )
 		Vector vecEyeDir, vecEyePos;
 		m_hPlayer->EyePositionAndVectors( &vecEyePos, &vecEyeDir, NULL, NULL );
 
-		if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
-		{
-			autoaim_params_t params;
+		//TODO: Adapt console auto-aim for PC
+		//if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
+		//{
+		//	autoaim_params_t params;
 
-			params.m_fScale = AUTOAIM_SCALE_DEFAULT * sv_vehicle_autoaim_scale.GetFloat();
-			params.m_fMaxDist = autoaim_max_dist.GetFloat();
-			m_hPlayer->GetAutoaimVector( params );
+		//	params.m_fScale = AUTOAIM_SCALE_DEFAULT * sv_vehicle_autoaim_scale.GetFloat();
+		//	params.m_fMaxDist = autoaim_max_dist.GetFloat();
+		//	m_hPlayer->GetAutoaimVector( params );
 
-			// Use autoaim as the eye dir if there is an autoaim ent.
-			vecEyeDir = params.m_vecAutoAimDir;
-		}
+		//	// Use autoaim as the eye dir if there is an autoaim ent.
+		//	vecEyeDir = params.m_vecAutoAimDir;
+		//}
 
 		// Trace out from the player's eye point.
 		Vector	vecEndPos = vecEyePos + ( vecEyeDir * MAX_TRACE_LENGTH );
@@ -905,7 +906,7 @@ void CPropJeep::FireCannon( void )
 	Vector aimDir;
 	GetCannonAim( &aimDir );
 
-#if defined( WIN32 ) && !defined( _X360 ) 
+#if defined( WIN32 )  
 	// NVNT apply a punch on fire
 	HapticPunch(m_hPlayer,0,0,hap_jeep_cannon_mag.GetFloat());
 #endif

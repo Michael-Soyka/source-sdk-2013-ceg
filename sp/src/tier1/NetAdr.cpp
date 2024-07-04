@@ -5,26 +5,27 @@
 // NetAdr.cpp: implementation of the CNetAdr class.
 //
 //===========================================================================//
-#if defined( _WIN32 ) && !defined( _X360 )
-#include <windows.h>
+#if defined( _WIN32 ) 
+	#include <windows.h>
 #endif
 
 #include "tier0/dbg.h"
 #include "netadr.h"
 #include "tier1/strtools.h"
 
-#if defined( _WIN32 ) && !defined( _X360 )
-#define WIN32_LEAN_AND_MEAN
-#include <winsock.h>
-typedef int socklen_t;
-#elif !defined( _X360 )
-#include <netinet/in.h> // ntohs()
-#include <netdb.h>		// gethostbyname()
-#include <sys/socket.h>	// getsockname()
+#if defined( _WIN32 ) 
+	#define WIN32_LEAN_AND_MEAN
+	#include <winsock.h>
+	typedef int socklen_t;
+#else
+	#include <netinet/in.h> // ntohs()
+	#include <netdb.h>		// gethostbyname()
+	#include <sys/socket.h>	// getsockname()
 #endif
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -271,8 +272,6 @@ void netadr_t::SetFromString( const char *pch, bool bUseDNS )
 	}
 	else if ( bUseDNS )
 	{
-// X360TBD:
-#if !defined( _X360 )
 		char szHostName[ 256 ];
 		Q_strncpy( szHostName, pch, sizeof(szHostName) );
 		char *pchColon = strchr( szHostName, ':' );
@@ -292,9 +291,6 @@ void netadr_t::SetFromString( const char *pch, bool bUseDNS )
 		{
 			SetPort( atoi( ++pchColon ) );
 		}
-#else
-		Assert( 0 );
-#endif
 	}
 }
 
@@ -310,7 +306,6 @@ bool netadr_t::operator<(const netadr_t &netadr) const
 
 void netadr_t::SetFromSocket( int hSocket )
 {	
-#if !defined(_X360)
 	Clear();
 	type = NA_IP;
 
@@ -320,7 +315,4 @@ void netadr_t::SetFromSocket( int hSocket )
 	{
 		SetFromSockadr( &address );
 	}
-#else
-	Assert(0);
-#endif
 }

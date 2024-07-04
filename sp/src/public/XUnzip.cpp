@@ -93,17 +93,18 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined( WIN32 ) && !defined( _X360 )
-#define STRICT
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <tchar.h>
+#if defined( WIN32 )
+  #define STRICT
+  #define WIN32_LEAN_AND_MEAN
+  #include <windows.h>
+  #include <tchar.h>
 #elif defined(POSIX)
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <unistd.h>
+  #include <fcntl.h>
+  #include <sys/stat.h>
+  #include <sys/time.h>
+  #include <unistd.h>
 #endif
+
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -145,10 +146,6 @@ bool WriteFile( void *handle, void *buf, unsigned int towrite, unsigned int *wri
 #define FILE_ATTRIBUTE_SYSTEM    0
 typedef unsigned char BYTE;
 #endif // POSIX
-
-#if defined( _X360 )
-#include "xbox/xbox_win32stubs.h"
-#endif
 
 
 // THIS FILE is almost entirely based upon code by Jean-loup Gailly

@@ -21,19 +21,21 @@
 
 #include "mathlib/mathlib.h"
 #include "mathlib/vector.h"
-#if !defined( _X360 )
+
 #include "mathlib/amd3dx.h"
+
 #ifndef OSX
-#include "3dnow.h"
+	#include "3dnow.h"
 #endif
+
 #include "sse.h"
-#endif
 
 #include "mathlib/ssemath.h"
 #include "mathlib/ssequaternion.h"
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+
 
 bool s_bMathlibInitialized = false;
 
@@ -922,19 +924,9 @@ void AngleVectors( const QAngle &angles, Vector *forward, Vector *right, Vector 
 	
 	float sr, sp, sy, cr, cp, cy;
 
-#ifdef _X360
-	fltx4 radians, scale, sine, cosine;
-	radians = LoadUnaligned3SIMD( angles.Base() );
-	scale = ReplicateX4( M_PI_F / 180.f ); 
-	radians = MulSIMD( radians, scale );
-	SinCos3SIMD( sine, cosine, radians ); 	
-	sp = SubFloat( sine, 0 );	sy = SubFloat( sine, 1 );	sr = SubFloat( sine, 2 );
-	cp = SubFloat( cosine, 0 );	cy = SubFloat( cosine, 1 );	cr = SubFloat( cosine, 2 );
-#else
 	SinCos( DEG2RAD( angles[YAW] ), &sy, &cy );
 	SinCos( DEG2RAD( angles[PITCH] ), &sp, &cp );
 	SinCos( DEG2RAD( angles[ROLL] ), &sr, &cr );
-#endif
 
 	if (forward)
 	{
@@ -1193,27 +1185,17 @@ void AngleMatrix( const QAngle &angles, const Vector &position, matrix3x4_t& mat
 
 void AngleMatrix( const QAngle &angles, matrix3x4_t& matrix )
 {
-#ifdef _VPROF_MATHLIB
-	VPROF_BUDGET( "AngleMatrix", "Mathlib" );
-#endif
+	#ifdef _VPROF_MATHLIB
+		VPROF_BUDGET( "AngleMatrix", "Mathlib" );
+	#endif
+
 	Assert( s_bMathlibInitialized );
 
 	float sr, sp, sy, cr, cp, cy;
 
-#ifdef _X360
-	fltx4 radians, scale, sine, cosine;
-	radians = LoadUnaligned3SIMD( angles.Base() );
-	scale = ReplicateX4( M_PI_F / 180.f ); 
-	radians = MulSIMD( radians, scale );
-	SinCos3SIMD( sine, cosine, radians ); 	
-
-	sp = SubFloat( sine, 0 );	sy = SubFloat( sine, 1 );	sr = SubFloat( sine, 2 );
-	cp = SubFloat( cosine, 0 );	cy = SubFloat( cosine, 1 );	cr = SubFloat( cosine, 2 );
-#else
 	SinCos( DEG2RAD( angles[YAW] ), &sy, &cy );
 	SinCos( DEG2RAD( angles[PITCH] ), &sp, &cp );
 	SinCos( DEG2RAD( angles[ROLL] ), &sr, &cr );
-#endif
 
 	// matrix = (YAW * PITCH) * ROLL
 	matrix[0][0] = cp*cy;
@@ -2016,30 +1998,18 @@ void AxisAngleQuaternion( const Vector &axis, float angle, Quaternion &q )
 void AngleQuaternion( const RadianEuler &angles, Quaternion &outQuat )
 {
 	Assert( s_bMathlibInitialized );
-//	Assert( angles.IsValid() );
 
-#ifdef _VPROF_MATHLIB
-	VPROF_BUDGET( "AngleQuaternion", "Mathlib" );
-#endif
+	//Assert( angles.IsValid() );
+
+	#ifdef _VPROF_MATHLIB
+		VPROF_BUDGET( "AngleQuaternion", "Mathlib" );
+	#endif
 
 	float sr, sp, sy, cr, cp, cy;
 
-#ifdef _X360
-	fltx4 radians, scale, sine, cosine;
-	radians = LoadUnaligned3SIMD( &angles.x );
-	scale = ReplicateX4( 0.5f ); 
-	radians = MulSIMD( radians, scale );
-	SinCos3SIMD( sine, cosine, radians ); 	
-
-	// NOTE: The ordering here is *different* from the AngleQuaternion below
-	// because p, y, r are not in the same locations in QAngle + RadianEuler. Yay!
-	sr = SubFloat( sine, 0 );	sp = SubFloat( sine, 1 );	sy = SubFloat( sine, 2 );	
-	cr = SubFloat( cosine, 0 );	cp = SubFloat( cosine, 1 );	cy = SubFloat( cosine, 2 );	
-#else
 	SinCos( angles.z * 0.5f, &sy, &cy );
 	SinCos( angles.y * 0.5f, &sp, &cp );
 	SinCos( angles.x * 0.5f, &sr, &cr );
-#endif
 
 	// NJS: for some reason VC6 wasn't recognizing the common subexpressions:
 	float srXcp = sr * cp, crXsp = cr * sp;
@@ -2062,28 +2032,15 @@ void AngleQuaternion( const RadianEuler &angles, Quaternion &outQuat )
 //-----------------------------------------------------------------------------
 void AngleQuaternion( const QAngle &angles, Quaternion &outQuat )
 {
-#ifdef _VPROF_MATHLIB
-	VPROF_BUDGET( "AngleQuaternion", "Mathlib" );
-#endif
+	#ifdef _VPROF_MATHLIB
+		VPROF_BUDGET( "AngleQuaternion", "Mathlib" );
+	#endif
 
 	float sr, sp, sy, cr, cp, cy;
 
-#ifdef _X360
-	fltx4 radians, scale, sine, cosine;
-	radians = LoadUnaligned3SIMD( angles.Base() );
-	scale = ReplicateX4( 0.5f * M_PI_F / 180.f ); 
-	radians = MulSIMD( radians, scale );
-	SinCos3SIMD( sine, cosine, radians ); 	
-
-	// NOTE: The ordering here is *different* from the AngleQuaternion above
-	// because p, y, r are not in the same locations in QAngle + RadianEuler. Yay!
-	sp = SubFloat( sine, 0 );	sy = SubFloat( sine, 1 );	sr = SubFloat( sine, 2 );	
-	cp = SubFloat( cosine, 0 );	cy = SubFloat( cosine, 1 );	cr = SubFloat( cosine, 2 );	
-#else
 	SinCos( DEG2RAD( angles.y ) * 0.5f, &sy, &cy );
 	SinCos( DEG2RAD( angles.x ) * 0.5f, &sp, &cp );
 	SinCos( DEG2RAD( angles.z ) * 0.5f, &sr, &cr );
-#endif
 
 	// NJS: for some reason VC6 wasn't recognizing the common subexpressions:
 	float srXcp = sr * cp, crXsp = cr * sp;
@@ -3316,7 +3273,6 @@ void MathLib_Init( float gamma, float texGamma, float brightness, int overbright
 
 	// FIXME: Hook SSE into VectorAligned + Vector4DAligned
 
-#if !defined( _X360 )
 	// Grab the processor information:
 	const CPUInformation& pi = *GetCPUInformation();
 
@@ -3398,7 +3354,6 @@ void MathLib_Init( float gamma, float texGamma, float brightness, int overbright
 	{
 		s_bSSE2Enabled = false;
 	}
-#endif // !_X360
 
 	s_bMathlibInitialized = true;
 

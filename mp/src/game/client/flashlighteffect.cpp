@@ -16,17 +16,14 @@
 #include "toolframework_client.h"
 
 #ifdef HL2_CLIENT_DLL
-#include "c_basehlplayer.h"
+	#include "c_basehlplayer.h"
 #endif // HL2_CLIENT_DLL
 
-#if defined( _X360 )
 extern ConVar r_flashlightdepthres;
-#else
-extern ConVar r_flashlightdepthres;
-#endif
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+
 
 extern ConVar r_flashlightdepthtexture;
 

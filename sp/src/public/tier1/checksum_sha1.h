@@ -29,13 +29,9 @@
 */
 
 #if !defined(_MINIMUM_BUILD_)
-#include <stdio.h>  // Needed for file access
-#if defined( _PS3 )
-#include <sys/memory.h>
-#else
-#include <memory.h>
-#endif
-#include <string.h> // Needed for strcat and strcpy
+	#include <stdio.h>  // Needed for file access
+	#include <memory.h>
+	#include <string.h> // Needed for strcat and strcpy
 #endif
 
 // If you're compiling big endian, just comment out the following line

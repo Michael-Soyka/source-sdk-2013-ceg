@@ -1194,7 +1194,7 @@ int CBasePlayer::OnTakeDamage( const CTakeDamageInfo &inputInfo )
 	}
 
 
-#if defined( WIN32 ) && !defined( _X360 )
+#if defined( WIN32 )
 	// NVNT if player's client has a haptic device send them a user message with the damage.
 	if(HasHaptics())
 		HapticsDamage(this,info);
@@ -1666,7 +1666,7 @@ void CBasePlayer::Event_Killed( const CTakeDamageInfo &info )
 
 	RumbleEffect( RUMBLE_STOP_ALL, 0, RUMBLE_FLAGS_NONE );
 
-#if defined( WIN32 ) && !defined( _X360 )
+#if defined( WIN32 )
 	// NVNT set the drag to zero in the case of underwater death.
 	HapticSetDrag(this,0);
 #endif
@@ -2549,7 +2549,6 @@ CBaseEntity * CBasePlayer::GetObserverTarget()
 
 void CBasePlayer::ObserverUse( bool bIsPressed )
 {
-#ifndef _XBOX
 	if ( !HLTVDirector()->IsActive() )
 		return;
 
@@ -2608,7 +2607,6 @@ void CBasePlayer::ObserverUse( bool bIsPressed )
 		return;
 
 	SetAbsOrigin( tr.endpos ); */
-#endif
 }
 
 void CBasePlayer::JumptoPosition(const Vector &origin, const QAngle &angles)
@@ -6658,14 +6656,6 @@ bool CBasePlayer::BumpWeapon( CBaseCombatWeapon *pWeapon )
 		else
 		{
 #ifdef HL2_DLL
-
-			if ( IsX360() )
-			{
-				CFmtStr hint;
-				hint.sprintf( "#valve_hint_select_%s", pWeapon->GetClassname() );
-				UTIL_HudHintText( this, hint.Access() );
-			}
-
 			// Always switch to a newly-picked up weapon
 			if ( !PlayerHasMegaPhysCannon() )
 			{
@@ -6928,7 +6918,7 @@ bool CBasePlayer::ShouldAutoaim( void )
 		return false;
 
 	// autoaiming is only for easy and medium skill
-	return ( IsX360() || !g_pGameRules->IsSkillLevel(SKILL_HARD) );
+	return ( !g_pGameRules->IsSkillLevel(SKILL_HARD) );
 }
 
 //-----------------------------------------------------------------------------
@@ -7006,17 +6996,18 @@ void CBasePlayer::GetAutoaimVector( autoaim_params_t &params )
 
 	Vector	forward;
 
-	if( IsInAVehicle() && g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
-	{
-		m_vecAutoAim = angles;
-		AngleVectors( EyeAngles() + m_vecAutoAim, &forward );
-	}
-	else
-	{
+	//TODO: Adapt console auto-aim for PC
+	//if( IsInAVehicle() && g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
+	//{
+	//	m_vecAutoAim = angles;
+	//	AngleVectors( EyeAngles() + m_vecAutoAim, &forward );
+	//}
+	//else
+	//{
 		// always use non-sticky autoaim
 		m_vecAutoAim = angles * 0.9f;
 		AngleVectors( EyeAngles() + m_Local.m_vecPunchAngle + m_vecAutoAim, &forward );
-	}
+	//}
 
 	params.m_vecAutoAimDir = forward;
 }
@@ -7212,7 +7203,7 @@ QAngle CBasePlayer::AutoaimDeflection( Vector &vecSrc, autoaim_params_t &params 
 					// Be lenient if the player is looking down, though. 30 degrees through 90 degrees of pitch.
 					// (90 degrees is looking down at player's own 'feet'. Looking straight ahead is 0 degrees pitch.
 					// This was done for XBox to make it easier to fight headcrabs around the player's feet.
-					if( eyeAngles.x < 30.0f || eyeAngles.x > 90.0f || g_pGameRules->GetAutoAimMode() != AUTOAIM_ON_CONSOLE )
+					if( eyeAngles.x < 30.0f || eyeAngles.x > 90.0f /* //TODO: Adapt console auto-aim for PC/ || g_pGameRules->GetAutoAimMode() != AUTOAIM_ON_CONSOLE */ )
 					{
 						continue;
 					}

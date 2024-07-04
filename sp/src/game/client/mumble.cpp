@@ -4,14 +4,14 @@
 //
 //===========================================================================//
 
-#if defined( WIN32 ) && !defined( _X360 )
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+#if defined( WIN32 ) 
+	#define WIN32_LEAN_AND_MEAN
+	#include <windows.h>
 #elif defined( POSIX )
-#include <sys/mman.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+	#include <sys/mman.h>
+	#include <sys/types.h>
+	#include <sys/stat.h>
+	#include <fcntl.h>
 #endif
 
 #include "cbase.h"
@@ -19,9 +19,9 @@
 #include "view.h"
 #include "mumble.h"
 
-#if !defined( _X360 ) && !defined( NO_STEAM )
-#include "steam/isteamuser.h"
-#include "steam/steam_api.h"
+#if !defined( NO_STEAM )
+	#include "steam/isteamuser.h"
+	#include "steam/steam_api.h"
 #endif
 
 const char *COM_GetModDirectory(); // return the mod dir (rather than the complete -game param, which can be a path)
@@ -86,7 +86,7 @@ void CMumbleSystem::LevelInitPostEntity()
 	if ( g_pMumbleMemory )
 		return;
 
-#if defined( WIN32 ) && !defined( _X360 )
+#if defined( WIN32 ) 
 	g_hMapObject = OpenFileMappingW( FILE_MAP_ALL_ACCESS, FALSE, L"MumbleLink" );
 	if ( g_hMapObject == NULL )
 		return;
@@ -121,7 +121,7 @@ void CMumbleSystem::LevelInitPostEntity()
 
 void CMumbleSystem::LevelShutdownPreEntity()
 {
-#if defined( WIN32 ) && !defined( _X360 )
+#if defined( WIN32 ) 
 	if ( g_hMapObject )
 	{
 		CloseHandle( g_hMapObject );

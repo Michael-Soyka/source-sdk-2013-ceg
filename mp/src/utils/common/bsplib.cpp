@@ -793,7 +793,7 @@ void ForceAlignment( IZip *pak, bool bAlign, bool bCompatibleFormat, unsigned in
 static void WritePakFileLump( void )
 {
 	CUtlBuffer buf( 0, 0 );
-	GetPakFile()->ActivateByteSwapping( IsX360() );
+	GetPakFile()->ActivateByteSwapping( false );
 	GetPakFile()->SaveToBuffer( buf );
 
 	// must respect pak file alignment
@@ -2302,7 +2302,7 @@ void LoadBSPFile( const char *filename )
 	int paksize = CopyVariableLump<byte>( FIELD_CHARACTER, LUMP_PAKFILE, ( void ** )&pakbuffer );
 	if ( paksize > 0 )
 	{
-		GetPakFile()->ActivateByteSwapping( IsX360() );
+		GetPakFile()->ActivateByteSwapping( false );
 		GetPakFile()->ParseFromBuffer( pakbuffer, paksize );
 	}
 	else
@@ -4289,27 +4289,6 @@ void SwapOcclusionLumpToDisk( void )
 	AddOcclusionLump();
 }
 
-void SwapPakfileLumpToDisk( const char *pInFilename )
-{
-	DevMsg( "Swapping %s\n", GetLumpName( LUMP_PAKFILE ) );
-
-	byte *pakbuffer = NULL;
-	int paksize = CopyVariableLump<byte>( FIELD_CHARACTER, LUMP_PAKFILE, ( void ** )&pakbuffer );
-	if ( paksize > 0 )
-	{
-		GetPakFile()->ActivateByteSwapping( IsX360() );
-		GetPakFile()->ParseFromBuffer( pakbuffer, paksize );
-
-		ConvertPakFileContents( pInFilename );
-	}
-	free( pakbuffer );
-
-	SetAlignedLumpPosition( LUMP_PAKFILE, XBOX_DVD_SECTORSIZE );
-	WritePakFileLump();
-
-	ReleasePakFileLumps();
-}
-
 void SwapGameLumpsToDisk( void )
 {
 	DevMsg( "Swapping %s\n", GetLumpName( LUMP_GAME_LUMP ) );
@@ -4447,13 +4426,6 @@ bool CompressGameLump( dheader_t *pInBSPHeader, dheader_t *pOutBSPHeader, CUtlBu
 	dgamelumpheader_t* pInGameLumpHeader = (dgamelumpheader_t*)(((byte *)pInBSPHeader) + pInBSPHeader->lumps[LUMP_GAME_LUMP].fileofs);
 	dgamelump_t* pInGameLump = (dgamelump_t*)(pInGameLumpHeader + 1);
 
-	if ( IsX360() )
-	{
-		byteSwap.ActivateByteSwapping( true );
-		byteSwap.SwapFieldsToTargetEndian( pInGameLumpHeader );
-		byteSwap.SwapFieldsToTargetEndian( pInGameLump, pInGameLumpHeader->lumpCount );
-	}
-
 	unsigned int newOffset = outputBuffer.TellPut();
 	// Make room for gamelump header and gamelump structs, which we'll write at the end
 	outputBuffer.SeekPut( CUtlBuffer::SEEK_CURRENT, sizeof( dgamelumpheader_t ) );
@@ -4528,13 +4500,6 @@ bool CompressGameLump( dheader_t *pInBSPHeader, dheader_t *pOutBSPHeader, CUtlBu
 	int lastLump = sOutGameLumpHeader.lumpCount-1;
 	sOutGameLump[lastLump].fileofs = outputBuffer.TellPut();
 
-	if ( IsX360() )
-	{
-		// fix the output for 360, swapping it back
-		byteSwap.SwapFieldsToTargetEndian( sOutGameLump, sOutGameLumpHeader.lumpCount );
-		byteSwap.SwapFieldsToTargetEndian( &sOutGameLumpHeader );
-	}
-
 	pOutBSPHeader->lumps[LUMP_GAME_LUMP].fileofs = newOffset;
 	pOutBSPHeader->lumps[LUMP_GAME_LUMP].filelen = outputBuffer.TellPut() - newOffset;
 	// We set GAMELUMPFLAG_COMPRESSED and handle compression at the sub-lump level, this whole lump is not
@@ -4582,19 +4547,13 @@ bool RepackBSP( CUtlBuffer &inputBuffer, CUtlBuffer &outputBuffer, CompressFunc_
 {
 	dheader_t *pInBSPHeader = (dheader_t *)inputBuffer.Base();
 	// The 360 swaps this header to disk. For some reason.
-	if ( pInBSPHeader->ident != ( IsX360() ? BigLong( IDBSPHEADER ) : IDBSPHEADER ) )
+	if ( pInBSPHeader->ident != IDBSPHEADER )
 	{
 		Warning( "RepackBSP given invalid input data\n" );
 		return false;
 	}
 
 	CByteswap	byteSwap;
-	if ( IsX360() )
-	{
-		// bsp is 360, swap the header back
-		byteSwap.ActivateByteSwapping( true );
-		byteSwap.SwapFieldsToTargetEndian( pInBSPHeader );
-	}
 
 	unsigned int headerOffset = outputBuffer.TellPut();
 	outputBuffer.Put( pInBSPHeader, sizeof( dheader_t ) );
@@ -4730,241 +4689,11 @@ bool RepackBSP( CUtlBuffer &inputBuffer, CUtlBuffer &outputBuffer, CompressFunc_
 		}
 	}
 
-	if ( IsX360() )
-	{
-		// fix the output for 360, swapping it back
-		byteSwap.SetTargetBigEndian( true );
-		byteSwap.SwapFieldsToTargetEndian( &sOutBSPHeader );
-	}
-
 	// Write out header
 	unsigned int endOffset = outputBuffer.TellPut();
 	outputBuffer.SeekPut( CUtlBuffer::SEEK_HEAD, headerOffset );
 	outputBuffer.Put( &sOutBSPHeader, sizeof( sOutBSPHeader ) );
 	outputBuffer.SeekPut( CUtlBuffer::SEEK_HEAD, endOffset );
-
-	return true;
-}
-
-//-----------------------------------------------------------------------------
-//  For all lumps in a bsp: Loads the lump from file A, swaps it, writes it to file B.
-//  This limits the memory used for the swap process which helps the Xbox 360.
-//
-//	NOTE: These lumps will be written to the file in exactly the order they appear here,
-//	so they can be shifted around if desired for file access optimization.
-//-----------------------------------------------------------------------------
-bool SwapBSPFile( const char *pInFilename, const char *pOutFilename, bool bSwapOnLoad, VTFConvertFunc_t pVTFConvertFunc, VHVFixupFunc_t pVHVFixupFunc, CompressFunc_t pCompressFunc )
-{
-	DevMsg( "Creating %s\n", pOutFilename );
-
-	if ( !g_pFileSystem->FileExists( pInFilename ) )
-	{
-		Warning( "Error! Couldn't open input file %s - BSP swap failed!\n", pInFilename ); 
-		return false;
-	}
-
-	g_hBSPFile = SafeOpenWrite( pOutFilename );
-	if ( !g_hBSPFile )
-	{
-		Warning( "Error! Couldn't open output file %s - BSP swap failed!\n", pOutFilename ); 
-		return false;
-	}
-
-	if ( !pVTFConvertFunc )
-	{
-		Warning( "Error! Missing VTF Conversion function\n" ); 
-		return false;
-	}
-	g_pVTFConvertFunc = pVTFConvertFunc;
-
-	// optional VHV fixup
-	g_pVHVFixupFunc = pVHVFixupFunc;
-
-	// optional compression callback
-	g_pCompressFunc = pCompressFunc;
-
-	// These must be mutually exclusive
-	g_bSwapOnLoad = bSwapOnLoad;
-	g_bSwapOnWrite = !bSwapOnLoad;
-
-	g_Swap.ActivateByteSwapping( true );
-
-	OpenBSPFile( pInFilename );
-
-	// CRC the bsp first
-	CRC32_t mapCRC;
-	CRC32_Init(&mapCRC);
-	if ( !CRC_MapFile( &mapCRC, pInFilename ) )
-	{
-		Warning( "Failed to CRC the bsp\n" );
-		return false;
-	}
-
-	// hold a dictionary of all the static prop names
-	// this is needed to properly convert any VHV files inside the pak lump
-	BuildStaticPropNameTable();
-
-	// Set the output file pointer after the header
-	dheader_t dummyHeader = { 0 };
-	SafeWrite( g_hBSPFile, &dummyHeader, sizeof( dheader_t ) );
-
-	// To allow for alignment fixups, the lumps will be written to the
-	// output file in the order they appear in this function.
-
-	// NOTE: Flags for 360 !!!MUST!!! be first	
-	SwapLumpToDisk< dflagslump_t >( LUMP_MAP_FLAGS );
-
-	// complex lump swaps first or for later contingent data
-	SwapLeafLumpToDisk();
-	SwapOcclusionLumpToDisk();
-	SwapGameLumpsToDisk();
-
-	// Strip dead or non relevant lumps
-	g_pBSPHeader->lumps[LUMP_DISP_LIGHTMAP_ALPHAS].filelen = 0;
-	g_pBSPHeader->lumps[LUMP_FACEIDS].filelen = 0;
-
-	// Strip obsolete LDR in favor of HDR
-	if ( SwapLumpToDisk<dface_t>( LUMP_FACES_HDR ) )
-	{
-		g_pBSPHeader->lumps[LUMP_FACES].filelen = 0;
-	}
-	else
-	{
-		// no HDR, keep LDR version
-		SwapLumpToDisk<dface_t>( LUMP_FACES );
-	}
-
-	if ( SwapLumpToDisk<dworldlight_t>( LUMP_WORLDLIGHTS_HDR ) )
-	{
-		g_pBSPHeader->lumps[LUMP_WORLDLIGHTS].filelen = 0;
-	}
-	else
-	{
-		// no HDR, keep LDR version
-		SwapLumpToDisk<dworldlight_t>( LUMP_WORLDLIGHTS );
-	}
-
-	// Simple lump swaps
-	SwapLumpToDisk<byte>( FIELD_CHARACTER, LUMP_PHYSDISP );
-	SwapLumpToDisk<byte>( FIELD_CHARACTER, LUMP_PHYSCOLLIDE );
-	SwapLumpToDisk<byte>( FIELD_CHARACTER, LUMP_VISIBILITY );
-	SwapLumpToDisk<dmodel_t>( LUMP_MODELS );
-	SwapLumpToDisk<dvertex_t>( LUMP_VERTEXES );
-	SwapLumpToDisk<dplane_t>( LUMP_PLANES );
-	SwapLumpToDisk<dnode_t>( LUMP_NODES );
-	SwapLumpToDisk<texinfo_t>( LUMP_TEXINFO );
-	SwapLumpToDisk<dtexdata_t>( LUMP_TEXDATA );
-	SwapLumpToDisk<ddispinfo_t>( LUMP_DISPINFO );
-    SwapLumpToDisk<CDispVert>( LUMP_DISP_VERTS );
-	SwapLumpToDisk<CDispTri>( LUMP_DISP_TRIS );
-    SwapLumpToDisk<char>( FIELD_CHARACTER, LUMP_DISP_LIGHTMAP_SAMPLE_POSITIONS );
-	SwapLumpToDisk<CFaceMacroTextureInfo>( LUMP_FACE_MACRO_TEXTURE_INFO );
-	SwapLumpToDisk<dprimitive_t>( LUMP_PRIMITIVES );
-	SwapLumpToDisk<dprimvert_t>( LUMP_PRIMVERTS );
-	SwapLumpToDisk<unsigned short>( FIELD_SHORT, LUMP_PRIMINDICES );
-    SwapLumpToDisk<dface_t>( LUMP_ORIGINALFACES );
-	SwapLumpToDisk<unsigned short>( FIELD_SHORT, LUMP_LEAFFACES );
-	SwapLumpToDisk<unsigned short>( FIELD_SHORT, LUMP_LEAFBRUSHES );
-	SwapLumpToDisk<int>( FIELD_INTEGER, LUMP_SURFEDGES );
-	SwapLumpToDisk<dedge_t>( LUMP_EDGES );
-	SwapLumpToDisk<dbrush_t>( LUMP_BRUSHES );
-	SwapLumpToDisk<dbrushside_t>( LUMP_BRUSHSIDES );
-	SwapLumpToDisk<darea_t>( LUMP_AREAS );
-	SwapLumpToDisk<dareaportal_t>( LUMP_AREAPORTALS );
-	SwapLumpToDisk<char>( FIELD_CHARACTER, LUMP_ENTITIES );
-	SwapLumpToDisk<dleafwaterdata_t>( LUMP_LEAFWATERDATA );
-	SwapLumpToDisk<float>( FIELD_VECTOR, LUMP_VERTNORMALS );
-	SwapLumpToDisk<short>( FIELD_SHORT, LUMP_VERTNORMALINDICES );
-	SwapLumpToDisk<float>( FIELD_VECTOR, LUMP_CLIPPORTALVERTS );
-	SwapLumpToDisk<dcubemapsample_t>( LUMP_CUBEMAPS );	
-	SwapLumpToDisk<char>( FIELD_CHARACTER, LUMP_TEXDATA_STRING_DATA );
-	SwapLumpToDisk<int>( FIELD_INTEGER, LUMP_TEXDATA_STRING_TABLE );
-	SwapLumpToDisk<doverlay_t>( LUMP_OVERLAYS );
-	SwapLumpToDisk<dwateroverlay_t>( LUMP_WATEROVERLAYS );
-	SwapLumpToDisk<unsigned short>( FIELD_SHORT, LUMP_LEAFMINDISTTOWATER );
-	SwapLumpToDisk<doverlayfade_t>( LUMP_OVERLAY_FADES );
-
-
-	// NOTE: this data placed at the end for the sake of 360:
-	{
-		// NOTE: lighting must be the penultimate lump
-		//       (allows 360 to free this memory part-way through map loading)
-		if ( SwapLumpToDisk<byte>( FIELD_CHARACTER, LUMP_LIGHTING_HDR ) )
-		{
-			g_pBSPHeader->lumps[LUMP_LIGHTING].filelen = 0;
-		}
-		else
-		{
-			// no HDR, keep LDR version
-			SwapLumpToDisk<byte>( FIELD_CHARACTER, LUMP_LIGHTING );
-		}
-		// NOTE: Pakfile for 360 !!!MUST!!! be last	
-		SwapPakfileLumpToDisk( pInFilename );
-	}
-
-
-	// Store the crc in the flags lump version field
-	g_pBSPHeader->lumps[LUMP_MAP_FLAGS].version = mapCRC;
-
-	// Pad out the end of the file to a sector boundary for optimal IO
-	AlignFilePosition( g_hBSPFile, XBOX_DVD_SECTORSIZE );
-
-	// Warn of any lumps that didn't get swapped
-	for ( int i = 0; i < HEADER_LUMPS; ++i )
-	{
-		if ( HasLump( i ) && !g_Lumps.bLumpParsed[i] )
-		{
-			// a new lump got added that needs to have a swap function
-			Warning( "BSP: '%s', %s has no swap or copy function. Discarding!\n", pInFilename, GetLumpName(i) );
-
-			// the data didn't get copied, so don't reference garbage
-			g_pBSPHeader->lumps[i].filelen = 0;
-		}
-	}
-
-	// Write the updated header
-	g_pFileSystem->Seek( g_hBSPFile, 0, FILESYSTEM_SEEK_HEAD );
-	WriteData( g_pBSPHeader );
-	g_pFileSystem->Close( g_hBSPFile );
-	g_hBSPFile = 0;
-
-	// Cleanup
-	g_Swap.ActivateByteSwapping( false );
-
-	CloseBSPFile();
-
-	g_StaticPropNames.Purge();
-	g_StaticPropInstances.Purge();
-
-	DevMsg( "Finished BSP Swap\n" );
-
-	// caller provided compress func will further compress compatible lumps
-	if ( pCompressFunc )
-	{
-		CUtlBuffer inputBuffer;
-		if ( !g_pFileSystem->ReadFile( pOutFilename, NULL, inputBuffer ) )
-		{
-			Warning( "Error! Couldn't read file %s - final BSP compression failed!\n", pOutFilename ); 
-			return false;
-		}
-
-		CUtlBuffer outputBuffer;
-		if ( !RepackBSP( inputBuffer, outputBuffer, pCompressFunc, IZip::eCompressionType_None ) )
-		{
-			Warning( "Error! Failed to compress BSP '%s'!\n", pOutFilename );
-			return false;
-		}
-
-		g_hBSPFile = SafeOpenWrite( pOutFilename );
-		if ( !g_hBSPFile )
-		{
-			Warning( "Error! Couldn't open output file %s - BSP swap failed!\n", pOutFilename ); 
-			return false;
-		}
-		SafeWrite( g_hBSPFile, outputBuffer.Base(), outputBuffer.TellPut() );
-		g_pFileSystem->Close( g_hBSPFile );
-		g_hBSPFile = 0;			
-	}
 
 	return true;
 }
@@ -5059,93 +4788,6 @@ static int LumpOffsetCompare( const void *pElem1, const void *pElem2 )
 	return 0;
 }
 
-//-----------------------------------------------------------------------------
-// Replace the pak lump in a BSP
-//-----------------------------------------------------------------------------
-bool SetPakFileLump( const char *pBSPFilename, const char *pNewFilename, void *pPakData, int pakSize )
-{
-	if ( !g_pFileSystem->FileExists( pBSPFilename ) )
-	{
-		Warning( "Error! Couldn't open file %s!\n", pBSPFilename ); 
-		return false;
-	}
-
-	// determine endian nature
-	dheader_t *pHeader;
-	LoadFile( pBSPFilename, (void **)&pHeader );
-	bool bSwap = ( pHeader->ident == BigLong( IDBSPHEADER ) );
-	free( pHeader );
-
-	g_bSwapOnLoad = bSwap;
-	g_bSwapOnWrite = bSwap;
-
-	OpenBSPFile( pBSPFilename );
-
-	// save a copy of the old header
-	// generating a new bsp is a destructive operation
-	dheader_t oldHeader;
-	oldHeader = *g_pBSPHeader;
-
-	g_hBSPFile = SafeOpenWrite( pNewFilename );
-	if ( !g_hBSPFile )
-	{
-		return false;
-	}
-
-	// placeholder only, reset at conclusion
-	WriteData( &oldHeader );
-
-	// lumps must be reserialized in same relative offset order
-	// build sorted order table
-	int readOrder[HEADER_LUMPS];
-	for ( int i=0; i<HEADER_LUMPS; i++ )
-	{
-		readOrder[i] = i;
-	}
-	qsort( readOrder, HEADER_LUMPS, sizeof( int ), LumpOffsetCompare );
-
-	for ( int i = 0; i < HEADER_LUMPS; i++ )
-	{
-		int lump = readOrder[i];
-
-		if ( lump == LUMP_PAKFILE )
-		{
-			// pak lump always written last, with special alignment
-			continue;
-		}
-
-		int length = g_pBSPHeader->lumps[lump].filelen;
-		if ( length )
-		{
-			// save the lump data
-			int offset = g_pBSPHeader->lumps[lump].fileofs;
-			SetAlignedLumpPosition( lump );
-			SafeWrite( g_hBSPFile, (byte *)g_pBSPHeader + offset, length );
-		}
-		else
-		{
-			g_pBSPHeader->lumps[lump].fileofs = 0;
-		}
-	}
-
-	// Always write the pak file at the end
-	// Pad out the end of the file to a sector boundary for optimal IO
-	g_pBSPHeader->lumps[LUMP_PAKFILE].fileofs = AlignFilePosition( g_hBSPFile, XBOX_DVD_SECTORSIZE );
-	g_pBSPHeader->lumps[LUMP_PAKFILE].filelen = pakSize;
-	SafeWrite( g_hBSPFile, pPakData, pakSize );
-
-	// Pad out the end of the file to a sector boundary for optimal IO
-	AlignFilePosition( g_hBSPFile, XBOX_DVD_SECTORSIZE );
-
-	// Write the updated header
-	g_pFileSystem->Seek( g_hBSPFile, 0, FILESYSTEM_SEEK_HEAD );
-	WriteData( g_pBSPHeader );
-	g_pFileSystem->Close( g_hBSPFile );
-
-	CloseBSPFile();
-	
-	return true;
-}
 
 //-----------------------------------------------------------------------------
 // Build a list of files that BSP owns, world/cubemap materials, static props, etc.

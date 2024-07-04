@@ -75,11 +75,9 @@ extern	CUtlVector<byte> *pdlightdata;
 extern	CUtlVector<char> dentdata;
 
 extern	int			    numleafs;
-#if !defined( _X360 )
+
 extern	dleaf_t			dleafs[MAX_MAP_LEAFS];
-#else
-extern	dleaf_t			*dleafs;
-#endif
+
 extern	CUtlVector<dleafambientlighting_t> *g_pLeafAmbientLighting;
 extern	CUtlVector<dleafambientindex_t> *g_pLeafAmbientIndex;
 extern	unsigned short  g_LeafMinDistToWater[MAX_MAP_LEAFS];
@@ -299,10 +297,8 @@ void	ReleasePakFileLumps(void);
 
 bool	RepackBSPCallback_LZMA( CUtlBuffer &inputBuffer, CUtlBuffer &outputBuffer );
 bool	RepackBSP( CUtlBuffer &inputBuffer, CUtlBuffer &outputBuffer, CompressFunc_t pCompressFunc, IZip::eCompressionType packfileCompression );
-bool	SwapBSPFile( const char *filename, const char *swapFilename, bool bSwapOnLoad, VTFConvertFunc_t pVTFConvertFunc, VHVFixupFunc_t pVHVFixupFunc, CompressFunc_t pCompressFunc );
 
 bool	GetPakFileLump( const char *pBSPFilename, void **pPakData, int *pPakSize );
-bool	SetPakFileLump( const char *pBSPFilename, const char *pNewFilename, void *pPakData, int pakSize );
 void	WriteLumpToFile( char *filename, int lump );
 void	WriteLumpToFile( char *filename, int lump, int nLumpVersion, void *pBuffer, size_t nBufLen );
 bool	GetBSPDependants( const char *pBSPFilename, CUtlVector< CUtlString > *pList );

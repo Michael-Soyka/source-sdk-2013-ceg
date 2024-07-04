@@ -4,14 +4,14 @@
 //
 //===========================================================================//
 
-#if defined( WIN32 ) && !defined( _X360 )
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+#if defined( WIN32 )
+	#define WIN32_LEAN_AND_MEAN
+	#include <windows.h>
 #elif defined( POSIX )
-#include <sys/mman.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+	#include <sys/mman.h>
+	#include <sys/types.h>
+	#include <sys/stat.h>
+	#include <fcntl.h>
 #endif
 
 #include "cbase.h"
@@ -19,22 +19,23 @@
 #include "view.h"
 #include "mumble.h"
 
-#if !defined( _X360 ) && !defined( NO_STEAM )
-#include "steam/isteamuser.h"
-#include "steam/steam_api.h"
+#if !defined( NO_STEAM )
+	#include "steam/isteamuser.h"
+	#include "steam/steam_api.h"
 #endif
 
 const char *COM_GetModDirectory(); // return the mod dir (rather than the complete -game param, which can be a path)
 
 struct MumbleSharedMemory_t
 {
-#ifdef WIN32
-	uint32	uiVersion;
-	ulong	uiTick;
-#else
-	uint32_t uiVersion;
-	uint32_t uiTick;
-#endif
+	#ifdef WIN32
+		uint32	uiVersion;
+		ulong	uiTick;
+	#else
+		uint32_t uiVersion;
+		uint32_t uiTick;
+	#endif
+
 	float	fAvatarPosition[3];
 	float	fAvatarFront[3];
 	float	fAvatarTop[3];
@@ -43,18 +44,20 @@ struct MumbleSharedMemory_t
 	float	fCameraFront[3];
 	float	fCameraTop[3];
 	wchar_t	identity[256];
-#ifdef WIN32
-	uint32	context_len;
-#else
-	uint32_t context_len;
-#endif
+
+	#ifdef WIN32
+		uint32	context_len;
+	#else
+		uint32_t context_len;
+	#endif
+
 	unsigned char context[256];
 	wchar_t description[2048];
 };
 
 MumbleSharedMemory_t *g_pMumbleMemory = NULL;
 #ifdef WIN32
-HANDLE g_hMapObject = NULL;
+	HANDLE g_hMapObject = NULL;
 #endif
 
 ConVar sv_mumble_positionalaudio( "sv_mumble_positionalaudio", "1", FCVAR_REPLICATED, "Allows players using Mumble to have support for positional audio." );
@@ -86,7 +89,7 @@ void CMumbleSystem::LevelInitPostEntity()
 	if ( g_pMumbleMemory )
 		return;
 
-#if defined( WIN32 ) && !defined( _X360 )
+#if defined( WIN32 )
 	g_hMapObject = OpenFileMappingW( FILE_MAP_ALL_ACCESS, FALSE, L"MumbleLink" );
 	if ( g_hMapObject == NULL )
 		return;
@@ -121,7 +124,7 @@ void CMumbleSystem::LevelInitPostEntity()
 
 void CMumbleSystem::LevelShutdownPreEntity()
 {
-#if defined( WIN32 ) && !defined( _X360 )
+#if defined( WIN32 )
 	if ( g_hMapObject )
 	{
 		CloseHandle( g_hMapObject );

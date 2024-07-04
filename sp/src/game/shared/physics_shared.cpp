@@ -516,11 +516,7 @@ void AddSurfacepropFile( const char *pFileName, IPhysicsSurfaceProps *pProps, IF
 		int len = pFileSystem->Size( file );
 
 		// read the file
-		int nBufSize = len+1;
-		if ( IsXbox() )
-		{
-			nBufSize = AlignValue( nBufSize , 512 );
-		}
+		int nBufSize = len + 1;
 		char *buffer = (char *)stackalloc( nBufSize );
 		pFileSystem->ReadEx( buffer, nBufSize, len, file );
 		pFileSystem->Close( file );

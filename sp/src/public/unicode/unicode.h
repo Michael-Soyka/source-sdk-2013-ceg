@@ -5,9 +5,10 @@
 //=============================================================================//
 
 #ifndef UNICODE_H
-#define UNICODE_H
+	#define UNICODE_H
+
 #ifdef _WIN32
-#pragma once
+	#pragma once
 #endif
 
 #include "interface.h"
@@ -16,12 +17,7 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 
-#if !defined( _X360 )
 #include <windows.h>
-#endif
-#if defined( _X360 )
-#include "xbox/xbox_win32stubs.h"
-#endif
 
 class IUnicodeWindows : public IBaseInterface
 {

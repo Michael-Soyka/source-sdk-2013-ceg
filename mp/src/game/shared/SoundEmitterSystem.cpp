@@ -37,6 +37,7 @@
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
 
+
 static ConVar sv_soundemitter_trace( "sv_soundemitter_trace", "0", FCVAR_REPLICATED, "Show all EmitSound calls including their symbolic name and the actual wave file they resolved to\n" );
 #ifdef STAGING_ONLY
 static ConVar sv_snd_filter( "sv_snd_filter", "", FCVAR_REPLICATED, "Filters out all sounds not containing the specified string before being emitted\n" );
@@ -45,10 +46,6 @@ static ConVar sv_snd_filter( "sv_snd_filter", "", FCVAR_REPLICATED, "Filters out
 extern ISoundEmitterSystemBase *soundemitterbase;
 static ConVar *g_pClosecaption = NULL;
 
-#ifdef _XBOX
-int LookupStringFromCloseCaptionToken( char const *token );
-const wchar_t *GetStringForIndex( int index );
-#endif
 static bool g_bPermitDirectSoundPrecache = false;
 
 #if !defined( CLIENT_DLL )
@@ -59,11 +56,6 @@ void ClearModelSoundsCache();
 
 void WaveTrace( char const *wavname, char const *funcname )
 {
-	if ( IsX360() && !IsDebug() )
-	{
-		return;
-	}
-
 	static CUtlSymbolTable s_WaveTrace;
 
 	// Make sure we only show the message once
@@ -556,7 +548,7 @@ public:
 		{
 			EmitCloseCaption( filter, entindex, params, ep );
 		}
-#if defined( WIN32 ) && !defined( _X360 )
+#if defined( WIN32 )
 		// NVNT notify the haptics system of this sound
 		HapticProcessSound(ep.m_pSoundName, entindex);
 #endif
@@ -1021,9 +1013,9 @@ void S_SoundEmitterSystemFlush( void )
 }
 
 #if defined( CLIENT_DLL )
-CON_COMMAND_F( cl_soundemitter_flush, "Flushes the sounds.txt system (client only)", FCVAR_CHEAT )
+	CON_COMMAND_F( cl_soundemitter_flush, "Flushes the sounds.txt system (client only)", FCVAR_CHEAT )
 #else
-CON_COMMAND_F( sv_soundemitter_flush, "Flushes the sounds.txt system (server only)", FCVAR_DEVELOPMENTONLY )
+	CON_COMMAND_F( sv_soundemitter_flush, "Flushes the sounds.txt system (server only)", FCVAR_DEVELOPMENTONLY )
 #endif
 {
 	S_SoundEmitterSystemFlush( );
@@ -1031,125 +1023,124 @@ CON_COMMAND_F( sv_soundemitter_flush, "Flushes the sounds.txt system (server onl
 
 #if !defined(_RETAIL)
 
-#if !defined( CLIENT_DLL ) 
+	#if !defined( CLIENT_DLL ) 
 
-#if !defined( _XBOX )
-
-CON_COMMAND_F( sv_soundemitter_filecheck, "Report missing wave files for sounds and game_sounds files.", FCVAR_DEVELOPMENTONLY )
-{
-	if ( !UTIL_IsCommandIssuedByServerAdmin() )
-		return;
-
-	int missing = soundemitterbase->CheckForMissingWavFiles( true );
-	DevMsg( "---------------------------\nTotal missing files %i\n", missing );
-}
-
-CON_COMMAND_F( sv_findsoundname, "Find sound names which reference the specified wave files.", FCVAR_DEVELOPMENTONLY )
-{
-	if ( !UTIL_IsCommandIssuedByServerAdmin() )
-		return;
-
-	if ( args.ArgC() != 2 )
-		return;
-
-	int c = soundemitterbase->GetSoundCount();
-	int i;
-
-	char const *search = args[ 1 ];
-	if ( !search )
-		return;
-
-	for ( i = 0; i < c; i++ )
-	{
-		CSoundParametersInternal *internal = soundemitterbase->InternalGetParametersForSound( i );
-		if ( !internal )
-			continue;
-
-		int waveCount = internal->NumSoundNames();
-		if ( waveCount > 0 )
+		CON_COMMAND_F( sv_soundemitter_filecheck, "Report missing wave files for sounds and game_sounds files.", FCVAR_DEVELOPMENTONLY )
 		{
-			for( int wave = 0; wave < waveCount; wave++ )
+			if ( !UTIL_IsCommandIssuedByServerAdmin() )
+				return;
+
+			int missing = soundemitterbase->CheckForMissingWavFiles( true );
+			DevMsg( "---------------------------\nTotal missing files %i\n", missing );
+		}
+
+		CON_COMMAND_F( sv_findsoundname, "Find sound names which reference the specified wave files.", FCVAR_DEVELOPMENTONLY )
+		{
+			if ( !UTIL_IsCommandIssuedByServerAdmin() )
+				return;
+
+			if ( args.ArgC() != 2 )
+				return;
+
+			int c = soundemitterbase->GetSoundCount();
+			int i;
+
+			char const *search = args[ 1 ];
+			if ( !search )
+				return;
+
+			for ( i = 0; i < c; i++ )
 			{
-				char const *wavefilename = soundemitterbase->GetWaveName( internal->GetSoundNames()[ wave ].symbol );
+				CSoundParametersInternal *internal = soundemitterbase->InternalGetParametersForSound( i );
+				if ( !internal )
+					continue;
 
-				if ( Q_stristr( wavefilename, search ) )
+				int waveCount = internal->NumSoundNames();
+				if ( waveCount > 0 )
 				{
-					char const *soundname = soundemitterbase->GetSoundName( i );
-					char const *scriptname = soundemitterbase->GetSourceFileForSound( i );
+					for( int wave = 0; wave < waveCount; wave++ )
+					{
+						char const *wavefilename = soundemitterbase->GetWaveName( internal->GetSoundNames()[ wave ].symbol );
 
-					Msg( "Referenced by '%s:%s' -- %s\n", scriptname, soundname, wavefilename );
+						if ( Q_stristr( wavefilename, search ) )
+						{
+							char const *soundname = soundemitterbase->GetSoundName( i );
+							char const *scriptname = soundemitterbase->GetSourceFileForSound( i );
+
+							Msg( "Referenced by '%s:%s' -- %s\n", scriptname, soundname, wavefilename );
+						}
+					}
 				}
 			}
 		}
-	}
-}
-#endif // !_XBOX
 
-#else
-void Playgamesound_f( const CCommand &args )
-{
-	CBasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
-	if ( pPlayer )
-	{
-		if ( args.ArgC() > 2 )
-		{
-			Vector position = pPlayer->EyePosition();
-			Vector forward;
-			pPlayer->GetVectors( &forward, NULL, NULL );
-			position += atof( args[2] ) * forward;
-			CPASAttenuationFilter filter( pPlayer );
-			EmitSound_t params;
-			params.m_pSoundName = args[1];
-			params.m_pOrigin = &position;
-			params.m_flVolume = 0.0f;
-			params.m_nPitch = 0;
-			g_SoundEmitterSystem.EmitSound( filter, 0, params );
-		}
-		else
-		{
-			pPlayer->EmitSound( args[1] );
-		}
-	}
-	else
-	{
-		Msg("Can't play until a game is started.\n");
-		// UNDONE: Make something like this work?
-		//CBroadcastRecipientFilter filter;
-		//g_SoundEmitterSystem.EmitSound( filter, 1, args[1], 0.0, 0, 0, &vec3_origin, 0, NULL );
-	}
-}
+	#else
 
-static int GamesoundCompletion( const char *partial, char commands[ COMMAND_COMPLETION_MAXITEMS ][ COMMAND_COMPLETION_ITEM_LENGTH ] )
-{
-	int current = 0;
-
-	const char *cmdname = "playgamesound";
-	char *substring = NULL;
-	int substringLen = 0;
-	if ( Q_strstr( partial, cmdname ) && strlen(partial) > strlen(cmdname) + 1 )
-	{
-		substring = (char *)partial + strlen( cmdname ) + 1;
-		substringLen = strlen(substring);
-	}
-	
-	for ( int i = soundemitterbase->GetSoundCount()-1; i >= 0 && current < COMMAND_COMPLETION_MAXITEMS; i-- )
-	{
-		const char *pSoundName = soundemitterbase->GetSoundName( i );
-		if ( pSoundName )
+		void Playgamesound_f( const CCommand &args )
 		{
-			if ( !substring || !Q_strncasecmp( pSoundName, substring, substringLen ) )
+			CBasePlayer *pPlayer = C_BasePlayer::GetLocalPlayer();
+			if ( pPlayer )
 			{
-				Q_snprintf( commands[ current ], sizeof( commands[ current ] ), "%s %s", cmdname, pSoundName );
-				current++;
+				if ( args.ArgC() > 2 )
+				{
+					Vector position = pPlayer->EyePosition();
+					Vector forward;
+					pPlayer->GetVectors( &forward, NULL, NULL );
+					position += atof( args[2] ) * forward;
+					CPASAttenuationFilter filter( pPlayer );
+					EmitSound_t params;
+					params.m_pSoundName = args[1];
+					params.m_pOrigin = &position;
+					params.m_flVolume = 0.0f;
+					params.m_nPitch = 0;
+					g_SoundEmitterSystem.EmitSound( filter, 0, params );
+				}
+				else
+				{
+					pPlayer->EmitSound( args[1] );
+				}
+			}
+			else
+			{
+				Msg("Can't play until a game is started.\n");
+				// UNDONE: Make something like this work?
+				//CBroadcastRecipientFilter filter;
+				//g_SoundEmitterSystem.EmitSound( filter, 1, args[1], 0.0, 0, 0, &vec3_origin, 0, NULL );
 			}
 		}
-	}
 
-	return current;
-}
+		static int GamesoundCompletion( const char *partial, char commands[ COMMAND_COMPLETION_MAXITEMS ][ COMMAND_COMPLETION_ITEM_LENGTH ] )
+		{
+			int current = 0;
 
-static ConCommand Command_Playgamesound( "playgamesound", Playgamesound_f, "Play a sound from the game sounds txt file", FCVAR_CLIENTCMD_CAN_EXECUTE | FCVAR_SERVER_CAN_EXECUTE, GamesoundCompletion );
-#endif
+			const char *cmdname = "playgamesound";
+			char *substring = NULL;
+			int substringLen = 0;
+			if ( Q_strstr( partial, cmdname ) && strlen(partial) > strlen(cmdname) + 1 )
+			{
+				substring = (char *)partial + strlen( cmdname ) + 1;
+				substringLen = strlen(substring);
+			}
+	
+			for ( int i = soundemitterbase->GetSoundCount()-1; i >= 0 && current < COMMAND_COMPLETION_MAXITEMS; i-- )
+			{
+				const char *pSoundName = soundemitterbase->GetSoundName( i );
+				if ( pSoundName )
+				{
+					if ( !substring || !Q_strncasecmp( pSoundName, substring, substringLen ) )
+					{
+						Q_snprintf( commands[ current ], sizeof( commands[ current ] ), "%s %s", cmdname, pSoundName );
+						current++;
+					}
+				}
+			}
+
+			return current;
+		}
+
+		static ConCommand Command_Playgamesound( "playgamesound", Playgamesound_f, "Play a sound from the game sounds txt file", FCVAR_CLIENTCMD_CAN_EXECUTE | FCVAR_SERVER_CAN_EXECUTE, GamesoundCompletion );
+
+	#endif
 
 #endif
 
@@ -1499,7 +1490,7 @@ void CBaseEntity::EmitCloseCaption( IRecipientFilter& filter, int entindex, char
 //-----------------------------------------------------------------------------
 bool CBaseEntity::PrecacheSound( const char *name )
 {
-	if ( IsPC() && !g_bPermitDirectSoundPrecache )
+	if ( !g_bPermitDirectSoundPrecache )
 	{
 		Warning( "Direct precache of %s\n", name );
 	}

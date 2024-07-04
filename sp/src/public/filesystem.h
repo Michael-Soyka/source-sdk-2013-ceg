@@ -40,10 +40,6 @@ typedef int FileFindHandle_t;
 typedef void (*FileSystemLoggingFunc_t)( const char *fileName, const char *accessType );
 typedef int WaitForResourcesHandle_t;
 
-#ifdef _X360
-typedef void* HANDLE;
-#endif
-
 #define USE_CRC_FILE_TRACKING 0
 
 // Turn on some extra pure server debug spew in certain builds.
@@ -917,36 +913,10 @@ private:
 
 //-----------------------------------------------------------------------------
 
-#if defined( _X360 ) && !defined( _RETAIL )
-extern char g_szXboxProfileLastFileOpened[MAX_PATH];
-#define SetLastProfileFileRead( s ) Q_strncpy( g_szXboxProfileLastFileOpened, sizeof( g_szXboxProfileLastFileOpened), pFileName )
-#define GetLastProfileFileRead() (&g_szXboxProfileLastFileOpened[0])
-#else
 #define SetLastProfileFileRead( s ) ((void)0)
 #define GetLastProfileFileRead() NULL
-#endif
 
-#if defined( _X360 ) && defined( _BASETSD_H_ )
-class CXboxDiskCacheSetter
-{
-public:
-	CXboxDiskCacheSetter( SIZE_T newSize )
-	{
-		m_oldSize = XGetFileCacheSize();
-		XSetFileCacheSize( newSize );
-	}
-
-	~CXboxDiskCacheSetter()
-	{
-		XSetFileCacheSize( m_oldSize );
-	}
-private:
-	SIZE_T m_oldSize;
-};
-#define DISK_INTENSIVE() CXboxDiskCacheSetter cacheSetter( 1024*1024 )
-#else
 #define DISK_INTENSIVE() ((void)0)
-#endif
 
 //-----------------------------------------------------------------------------
 
@@ -968,9 +938,9 @@ inline unsigned IFileSystem::GetOptimalReadSize( FileHandle_t hFile, unsigned nL
 // Async memory tracking
 //-----------------------------------------------------------------------------
 
-#if (defined(_DEBUG) || defined(USE_MEM_DEBUG))
-#define AsyncRead( a, b ) AsyncReadCreditAlloc( a, __FILE__, __LINE__, b )
-#define AsyncReadMutiple( a, b, c ) AsyncReadMultipleCreditAlloc( a, b, __FILE__, __LINE__, c )
+#if ( defined(_DEBUG) || defined(USE_MEM_DEBUG) )
+	#define AsyncRead( a, b ) AsyncReadCreditAlloc( a, __FILE__, __LINE__, b )
+	#define AsyncReadMutiple( a, b, c ) AsyncReadMultipleCreditAlloc( a, b, __FILE__, __LINE__, c )
 #endif
 
 extern IFileSystem *g_pFullFileSystem;

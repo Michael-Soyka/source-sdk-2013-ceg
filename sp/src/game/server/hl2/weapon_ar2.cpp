@@ -491,14 +491,15 @@ void CWeaponAR2::AddViewKick( void )
 
 	float flDuration = m_fFireDuration;
 
-	if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
-	{
-		// On the 360 (or in any configuration using the 360 aiming scheme), don't let the
-		// AR2 progressive into the late, highly inaccurate stages of its kick. Just
-		// spoof the time to make it look (to the kicking code) like we haven't been
-		// firing for very long.
-		flDuration = MIN( flDuration, 0.75f );
-	}
+	//TODO: Adapt console auto-aim for PC
+	//if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
+	//{
+	//	// On the 360 (or in any configuration using the 360 aiming scheme), don't let the
+	//	// AR2 progressive into the late, highly inaccurate stages of its kick. Just
+	//	// spoof the time to make it look (to the kicking code) like we haven't been
+	//	// firing for very long.
+	//	flDuration = MIN( flDuration, 0.75f );
+	//}
 
 	DoMachineGunKick( pPlayer, EASY_DAMPEN, MAX_VERTICAL_KICK, flDuration, SLIDE_LIMIT );
 }

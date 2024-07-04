@@ -700,7 +700,6 @@ void Panel::Init( int x, int y, int wide, int tall )
 	REGISTER_COLOR_AS_OVERRIDABLE( _fgColor, "fgcolor_override" );
 	REGISTER_COLOR_AS_OVERRIDABLE( _bgColor, "bgcolor_override" );
 
-	m_bIsConsoleStylePanel = false;
 	m_NavUp = NULL;
 	m_NavDown = NULL;
 	m_NavLeft = NULL;
@@ -1080,14 +1079,6 @@ void Panel::PaintTraverse( bool repaint, bool allowForce )
 
 	float oldAlphaMultiplier = surface()->DrawGetAlphaMultiplier();
 	float newAlphaMultiplier = oldAlphaMultiplier * m_flAlpha * 1.0f/255.0f;
-
-	if ( IsXbox() && !newAlphaMultiplier )
-	{
-		// xbox optimization not suitable for pc
-		// xbox panels are compliant and can early out and not traverse their children
-		// when they have no opacity
-		return;
-	}
 
 	if ( !repaint &&
 		 allowForce &&
@@ -2833,8 +2824,7 @@ void Panel::InternalSetCursor()
 void Panel::OnThink()
 {
 #if defined( VGUI_USEDRAGDROP )
-	if ( IsPC() && 
-		m_pDragDrop->m_bDragEnabled &&
+	if ( m_pDragDrop->m_bDragEnabled &&
 		m_pDragDrop->m_bDragging &&
 		m_pDragDrop->m_bDragStarted )
 	{
@@ -3028,85 +3018,18 @@ void Panel::OnKeyCodeTyped(KeyCode keycode)
 {
 	vgui::KeyCode code = GetBaseButtonCode( keycode );
 
-	// handle focus change
-	if ( IsX360() || IsConsoleStylePanel() )
-	{
-		// eat these typed codes, will get handled in OnKeyCodePressed
-		switch ( code )
-		{
-		case KEY_XBUTTON_UP:
-		case KEY_XSTICK1_UP:
-		case KEY_XSTICK2_UP:
-		case KEY_XBUTTON_DOWN:
-		case KEY_XSTICK1_DOWN:
-		case KEY_XSTICK2_DOWN:
-		case KEY_XBUTTON_LEFT:
-		case KEY_XSTICK1_LEFT:
-		case KEY_XSTICK2_LEFT:
-		case KEY_XBUTTON_RIGHT:
-		case KEY_XSTICK1_RIGHT:
-		case KEY_XSTICK2_RIGHT:
-		case KEY_XBUTTON_A:
-		case KEY_XBUTTON_B:
-		case KEY_XBUTTON_X:
-		case KEY_XBUTTON_Y:
-		case KEY_XBUTTON_LEFT_SHOULDER:
-		case KEY_XBUTTON_RIGHT_SHOULDER:
-		case KEY_XBUTTON_BACK:
-		case KEY_XBUTTON_START:
-		case KEY_XBUTTON_STICK1:
-		case KEY_XBUTTON_STICK2:
-		case KEY_XBUTTON_LTRIGGER:
-		case KEY_XBUTTON_RTRIGGER:
-
-		case KEY_UP:
-		case KEY_DOWN:
-		case KEY_LEFT:
-		case KEY_RIGHT:
-			return;
-		}
-
-		// legacy handling - need to re-enable for older apps?
-		/*
-		if ( code == KEY_XSTICK1_RIGHT || code == KEY_XBUTTON_RIGHT )
-		{
-		RequestFocusNext();
-		return;
-		}
-		else if ( code == KEY_XSTICK1_LEFT || code == KEY_XBUTTON_LEFT )
-		{
-		RequestFocusPrev();
-		return;
-		}
-		*/
-	}
-
 	if (code == KEY_TAB)
 	{
 		bool bShiftDown = input()->IsKeyDown(KEY_LSHIFT) || input()->IsKeyDown(KEY_RSHIFT);
 
-		if ( IsConsoleStylePanel() )
+		// if shift is down goto previous tab position, otherwise goto next
+		if ( bShiftDown )
 		{
-			if ( bShiftDown )
-			{
-				NavigateUp();
-			}
-			else
-			{
-				NavigateDown();
-			}
+			RequestFocusPrev();
 		}
 		else
 		{
-			// if shift is down goto previous tab position, otherwise goto next
-			if ( bShiftDown )
-			{
-				RequestFocusPrev();
-			}
-			else
-			{
-				RequestFocusNext();
-			}
+			RequestFocusNext();
 		}
 	}
 	else
@@ -3428,7 +3351,7 @@ bool Panel::RequestFocusNext(VPANEL panel)
 void Panel::RequestFocus(int direction)
 {
 	// NOTE: This doesn't make any sense if we don't have keyboard input enabled
-	Assert( ( IsX360() || IsConsoleStylePanel() ) || IsKeyBoardInputEnabled() );
+	Assert( IsKeyBoardInputEnabled() );
 	//	ivgui()->DPrintf2("RequestFocus(%s, %s)\n", GetName(), GetClassName());
 	OnRequestFocus(GetVPanel(), NULL);
 }
@@ -4435,7 +4358,7 @@ void Panel::ApplySettings(KeyValues *inResourceData)
 	excludeEdgeFromTitleSafe.width = 0;
 	excludeEdgeFromTitleSafe.height = 0;
 
-	if ( IsX360() || panel_test_title_safe.GetBool() )
+	if ( panel_test_title_safe.GetBool() )
 	{
 		// "usetitlesafe" "1" - required inner 90%
 		// "usetitlesafe" "2" - suggested inner 85%
@@ -5535,11 +5458,11 @@ void Panel::PreparePanelMap( PanelMap_t *panelMap )
 void Panel::OnDelete()
 {
 #ifdef WIN32
-	Assert( IsX360() || ( IsPC() && _heapchk() == _HEAPOK ) );
+	Assert( _heapchk() == _HEAPOK );
 #endif
 	delete this;
 #ifdef WIN32
-	Assert( IsX360() || ( IsPC() && _heapchk() == _HEAPOK ) );
+	Assert( _heapchk() == _HEAPOK );
 #endif
 }
 
@@ -5624,11 +5547,6 @@ BaseTooltip *Panel::GetTooltip()
 	{
 		m_pTooltips = new TextTooltip(this, NULL);
 		m_bToolTipOverridden = false;
-		
-		if ( IsConsoleStylePanel() )
-		{
-			m_pTooltips->SetEnabled( false );
-		}
 	}
 
 	return m_pTooltips;
@@ -7774,11 +7692,6 @@ Panel* Panel::NavigateBack()
 //-----------------------------------------------------------------------------
 void Panel::NavigateTo()
 {
-	if ( IsX360() )
-	{
-		RequestFocus( 0 );
-	}
-
 	CallParentFunction( new KeyValues( "OnNavigateTo", "panelName", GetName() ) );
 
 	Panel *target = GetNavToRelay();
@@ -8283,16 +8196,6 @@ vgui::Panel* Panel::GetNavActivatePanel()
 vgui::Panel* Panel::GetNavBackPanel()
 {
 	return m_NavBack;
-}
-
-void Panel::SetConsoleStylePanel( bool bConsoleStyle )
-{
-	m_bIsConsoleStylePanel = bConsoleStyle;
-}
-
-bool Panel::IsConsoleStylePanel() const
-{
-	return m_bIsConsoleStylePanel;
 }
 
 //-----------------------------------------------------------------------------

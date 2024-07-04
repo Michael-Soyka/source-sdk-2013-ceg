@@ -7,14 +7,10 @@
 //=====================================================================================//
 
 #ifndef _LZMADECODER_H
-#define _LZMADECODER_H
+	#define _LZMADECODER_H
 #pragma once
 
-#if !defined( _X360 )
 #define LZMA_ID				(('A'<<24)|('M'<<16)|('Z'<<8)|('L'))
-#else
-#define LZMA_ID				(('L'<<24)|('Z'<<16)|('M'<<8)|('A'))
-#endif
 
 // bind the buffer for correct identification
 #pragma pack(1)

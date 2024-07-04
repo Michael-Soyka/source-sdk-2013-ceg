@@ -616,11 +616,6 @@ void CNPC_MetroPolice::Spawn( void )
 {
 	Precache();
 
-#ifdef _XBOX
-	// Always fade the corpse
-	AddSpawnFlags( SF_NPC_FADE_CORPSE );
-#endif // _XBOX
-
 	SetModel( STRING( GetModelName() ) );
 
 	SetHullType(HULL_HUMAN);
@@ -2239,12 +2234,8 @@ Vector CNPC_MetroPolice::ComputeBurstTrajectory( const Vector &shootOrigin )
 
 	VectorNormalize( vecPos );
 
-	// X360BUG: Was causing compiler crash in release, still?
-//	if ( IsPC() )
-	{
-		// Allow for steering towards the target.
-		SteerBurstTowardTarget();
-	}
+	// Allow for steering towards the target.
+	SteerBurstTowardTarget();
 	
 	// Update the burst target position
 	m_vecBurstTargetPos += m_vecBurstDelta;

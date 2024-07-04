@@ -7,10 +7,10 @@
 //=============================================================================//
 
 #ifndef VECTOR_H
-#define VECTOR_H
+	#define VECTOR_H
 
 #ifdef _WIN32
-#pragma once
+	#pragma once
 #endif
 
 #include <math.h>
@@ -22,16 +22,15 @@
 // For rand(). We really need a library!
 #include <stdlib.h>
 
-#ifndef _X360
 // For MMX intrinsics
 #include <xmmintrin.h>
-#endif
 
 #include "tier0/dbg.h"
 #include "tier0/threadtools.h"
 #include "mathlib/vector2d.h"
 #include "mathlib/math_pfns.h"
 #include "minmax.h"
+
 
 // Uncomment this to add extra Asserts to check for NANs, uninitialized vecs, etc.
 //#define VECTOR_PARANOIA	1
@@ -211,7 +210,7 @@ private:
 FORCEINLINE void NetworkVarConstruct( Vector &v ) { v.Zero(); }
 
 
-#define USE_M64S ( ( !defined( _X360 ) ) )
+#define USE_M64S true
 
 
 
@@ -2174,8 +2173,6 @@ inline void AngularImpulseToQAngle( const AngularImpulse &impulse, QAngle &angle
 	angles.z = impulse.x;
 }
 
-#if !defined( _X360 )
-
 FORCEINLINE vec_t InvRSquared( float const *v )
 {
 #if defined(__i386__) || defined(_M_IX86)
@@ -2240,50 +2237,6 @@ FORCEINLINE void VectorNormalizeFast( Vector &vec )
 	VectorNormalize(vec);
 }
 
-#else
-
-FORCEINLINE float _VMX_InvRSquared( const Vector &v )
-{
-	XMVECTOR xmV = XMVector3ReciprocalLength( XMLoadVector3( v.Base() ) );
-	xmV = XMVector3Dot( xmV, xmV );
-	return xmV.x;
-}
-
-// call directly
-FORCEINLINE float _VMX_VectorNormalize( Vector &vec )
-{
-	float mag = XMVector3Length( XMLoadVector3( vec.Base() ) ).x;
-	float den = 1.f / (mag + FLT_EPSILON );
-	vec.x *= den;
-	vec.y *= den;
-	vec.z *= den;
-	return mag;
-}
-
-#define InvRSquared(x) _VMX_InvRSquared(x)
-
-// FIXME: Change this back to a #define once we get rid of the vec_t version
-FORCEINLINE float VectorNormalize( Vector& v )
-{
-	return _VMX_VectorNormalize( v );
-}
-// FIXME: Obsolete version of VectorNormalize, once we remove all the friggin float*s
-FORCEINLINE float VectorNormalize( float *pV )
-{
-	return _VMX_VectorNormalize(*(reinterpret_cast<Vector*>(pV)));
-}
-
-// call directly
-FORCEINLINE void VectorNormalizeFast( Vector &vec )
-{
-	XMVECTOR xmV = XMVector3LengthEst( XMLoadVector3( vec.Base() ) );
-	float den = 1.f / (xmV.x + FLT_EPSILON);
-	vec.x *= den;
-	vec.y *= den;
-	vec.z *= den;
-}
-
-#endif // _X360
 
 
 inline vec_t Vector::NormalizeInPlace()

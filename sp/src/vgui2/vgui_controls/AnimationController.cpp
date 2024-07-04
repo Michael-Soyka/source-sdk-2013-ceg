@@ -146,11 +146,7 @@ bool AnimationController::LoadScriptFile(const char *fileName)
 	// read the whole thing into memory
 	int size = g_pFullFileSystem->Size(f);
 	// read into temporary memory block
-	int nBufSize = size+1;
-	if ( IsXbox() )
-	{
-		nBufSize = AlignValue( nBufSize, 512 );
-	}
+	int nBufSize = size + 1;
 	char *pMem = (char *)malloc(nBufSize);
 	int bytesRead = g_pFullFileSystem->ReadEx(pMem, nBufSize, size, f);
 	Assert(bytesRead <= size);

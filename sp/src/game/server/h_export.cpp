@@ -13,7 +13,7 @@
 
 */
 
-#if defined(_WIN32) && !defined(_XBOX)
+#if defined( _WIN32 )
 
 #include "winlite.h"
 #include "datamap.h"
@@ -21,6 +21,7 @@
 
 // memdbgon must be the last include file in a .cpp file!!!
 #include "tier0/memdbgon.h"
+
 
 HMODULE win32DLLHandle;
 

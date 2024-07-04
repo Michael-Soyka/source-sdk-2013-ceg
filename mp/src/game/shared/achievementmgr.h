@@ -47,9 +47,9 @@ public:
 	virtual void LevelShutdownPreEntity();
 	virtual void InitializeAchievements();
 	virtual void Update( float frametime );
-#ifdef GAME_DLL
-	virtual void FrameUpdatePostEntityThink();
-#endif
+	#ifdef GAME_DLL
+		virtual void FrameUpdatePostEntityThink();
+	#endif
 
 	void OnMapEvent( const char *pchEventName );
 	
@@ -100,20 +100,20 @@ public:
 	bool CheckAchievementsEnabled();
 	bool LoggedIntoSteam() 
 	{ 
-#if !defined(NO_STEAM)
-		return ( steamapicontext->SteamUser() && steamapicontext->SteamUserStats() && steamapicontext->SteamUser()->BLoggedOn() ); 
-#else
-		return false;
-#endif
+		#if !defined(NO_STEAM)
+			return ( steamapicontext->SteamUser() && steamapicontext->SteamUserStats() && steamapicontext->SteamUser()->BLoggedOn() ); 
+		#else
+			return false;
+		#endif
 	}
 	float GetTimeLastUpload() { return m_flTimeLastSaved; }			// time we last uploaded to Steam
 
 	bool WereCheatsEverOn( void ) { return m_bCheatsEverOn; }
 
-#if !defined(NO_STEAM)
-	STEAM_CALLBACK( CAchievementMgr, Steam_OnUserStatsReceived, UserStatsReceived_t, m_CallbackUserStatsReceived );
-	STEAM_CALLBACK( CAchievementMgr, Steam_OnUserStatsStored, UserStatsStored_t, m_CallbackUserStatsStored );
-#endif
+	#if !defined(NO_STEAM)
+		STEAM_CALLBACK( CAchievementMgr, Steam_OnUserStatsReceived, UserStatsReceived_t, m_CallbackUserStatsReceived );
+		STEAM_CALLBACK( CAchievementMgr, Steam_OnUserStatsStored, UserStatsStored_t, m_CallbackUserStatsStored );
+	#endif
 
 	void SetAchievementThink( CBaseAchievement *pAchievement, float flThinkTime );
 
@@ -167,17 +167,15 @@ private:
 const char *GetModelName( CBaseEntity *pBaseEntity );
 
 #ifdef CLIENT_DLL
-bool CalcPlayersOnFriendsList( int iMinPlayers );
-bool CalcHasNumClanPlayers( int iClanTeammates );
-int	CalcPlayerCount();
-int	CalcTeammateCount();
+	bool CalcPlayersOnFriendsList( int iMinPlayers );
+	bool CalcHasNumClanPlayers( int iClanTeammates );
+	int	CalcPlayerCount();
+	int	CalcTeammateCount();
 #endif // CLIENT
 
-class IMatchmaking;
 extern ConVar	cc_achievement_debug;
-extern IMatchmaking *matchmaking;
 
 #ifdef CLIENT_DLL
-void MsgFunc_AchievementEvent( bf_read &msg );
+	void MsgFunc_AchievementEvent( bf_read &msg );
 #endif // CLIENT_DLL
 #endif // ACHIEVEMENTMGR_H

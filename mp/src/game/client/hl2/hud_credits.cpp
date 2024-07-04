@@ -308,8 +308,7 @@ void CHudCredits::DrawOutroCreditsName( void )
 				{
 					m_bLastOneInPlace = true;
 					
-					// 360 certification requires that we not hold a static image too long.
-					m_flFadeTime = gpGlobals->curtime + ( IsConsole() ? 2.0f : 10.0f );
+					m_flFadeTime = gpGlobals->curtime + 10.0f;
 				}
 			}
 			else
@@ -418,11 +417,7 @@ void CHudCredits::DrawLogo( void )
 
 	char szLogoFont[64];
 
-	if ( IsXbox() )
-	{
-		Q_snprintf( szLogoFont, sizeof( szLogoFont ), "WeaponIcons_Small" );
-	}
-	else if ( hl2_episodic.GetBool() )
+	if ( hl2_episodic.GetBool() )
 	{
 		Q_snprintf( szLogoFont, sizeof( szLogoFont ), "ClientTitleFont" );
 	}

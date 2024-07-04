@@ -439,9 +439,7 @@ int Q_log2(int val);
 // Math routines done in optimized assembly math package routines
 void inline SinCos( float radians, float *sine, float *cosine )
 {
-#if defined( _X360 )
-	XMScalarSinCos( sine, cosine, radians );
-#elif defined( PLATFORM_WINDOWS_PC32 )
+#if defined( PLATFORM_WINDOWS_PC32 )
 	_asm
 	{
 		fld		DWORD PTR [radians]
@@ -1205,19 +1203,8 @@ FORCEINLINE int RoundFloatToInt(float f)
 {
 #if defined(__i386__) || defined(_M_IX86) || defined( PLATFORM_WINDOWS_PC64 )
 	return _mm_cvtss_si32(_mm_load_ss(&f));
-#elif defined( _X360 )
-#ifdef Assert
-	Assert( IsFPUControlWordSet() );
-#endif
-	union
-	{
-		double flResult;
-		int pResult[2];
-	};
-	flResult = __fctiw( f );
-	return pResult[1];
 #else
-#error Unknown architecture
+	#error Unknown architecture
 #endif
 }
 
@@ -1232,56 +1219,40 @@ FORCEINLINE unsigned char RoundFloatToByte(float f)
 
 FORCEINLINE unsigned long RoundFloatToUnsignedLong(float f)
 {
-#if defined( _X360 )
-#ifdef Assert
-	Assert( IsFPUControlWordSet() );
-#endif
-	union
-	{
-		double flResult;
-		int pIntResult[2];
-		unsigned long pResult[2];
-	};
-	flResult = __fctiw( f );
-	Assert( pIntResult[1] >= 0 );
-	return pResult[1];
-#else  // !X360
-	
-#if defined( PLATFORM_WINDOWS_PC64 )
-	uint nRet = ( uint ) f;
-	if ( nRet & 1 )
-	{
-		if ( ( f - floor( f ) >= 0.5 ) )
+	#if defined( PLATFORM_WINDOWS_PC64 )
+		uint nRet = ( uint ) f;
+		if ( nRet & 1 )
 		{
-			nRet++;
+			if ( ( f - floor( f ) >= 0.5 ) )
+			{
+				nRet++;
+			}
 		}
-	}
-	else
-	{
-		if ( ( f - floor( f ) > 0.5 ) )
+		else
 		{
-			nRet++;
+			if ( ( f - floor( f ) > 0.5 ) )
+			{
+				nRet++;
+			}
 		}
-	}
-	return nRet;
-#else // PLATFORM_WINDOWS_PC64
-	unsigned char nResult[8];
+		return nRet;
+	#else // PLATFORM_WINDOWS_PC64
+		unsigned char nResult[8];
 
-	#if defined( _WIN32 )
-		__asm
-		{
-			fld f
-			fistp       qword ptr nResult
-		}
-	#elif POSIX
-		__asm __volatile__ (
-			"fistpl %0;": "=m" (nResult): "t" (f) : "st"
-		);
-	#endif
+		#if defined( _WIN32 )
+			__asm
+			{
+				fld f
+				fistp       qword ptr nResult
+			}
+		#elif POSIX
+			__asm __volatile__ (
+				"fistpl %0;": "=m" (nResult): "t" (f) : "st"
+			);
+		#endif
 
 		return *((unsigned long*)nResult);
-#endif // PLATFORM_WINDOWS_PC64
-#endif // !X360
+	#endif // PLATFORM_WINDOWS_PC64
 }
 
 FORCEINLINE bool IsIntegralValue( float flValue, float flTolerance = 0.001f )
@@ -1292,33 +1263,25 @@ FORCEINLINE bool IsIntegralValue( float flValue, float flTolerance = 0.001f )
 // Fast, accurate ftol:
 FORCEINLINE int Float2Int( float a )
 {
-#if defined( _X360 )
-	union
-	{
-		double flResult;
-		int pResult[2];
-	};
-	flResult = __fctiwz( a );
-	return pResult[1];
-#else  // !X360
 	// Rely on compiler to generate CVTTSS2SI on x86
 	return (int) a;
-#endif
 }
 
 // Over 15x faster than: (int)floor(value)
 inline int Floor2Int( float a )
 {
 	int RetVal;
-#if defined( __i386__ )
-	// Convert to int and back, compare, subtract one if too big
-	__m128 a128 = _mm_set_ss(a);
-	RetVal = _mm_cvtss_si32(a128);
-    __m128 rounded128 = _mm_cvt_si2ss(_mm_setzero_ps(), RetVal);
-	RetVal -= _mm_comigt_ss( rounded128, a128 );
-#else
-	RetVal = static_cast<int>( floor(a) );
-#endif
+
+	#if defined( __i386__ )
+		// Convert to int and back, compare, subtract one if too big
+		__m128 a128 = _mm_set_ss(a);
+		RetVal = _mm_cvtss_si32(a128);
+		__m128 rounded128 = _mm_cvt_si2ss(_mm_setzero_ps(), RetVal);
+		RetVal -= _mm_comigt_ss( rounded128, a128 );
+	#else
+		RetVal = static_cast<int>( floor(a) );
+	#endif
+
 	return RetVal;
 }
 
@@ -1327,14 +1290,14 @@ inline int Floor2Int( float a )
 //-----------------------------------------------------------------------------
 FORCEINLINE unsigned int FastFToC( float c )
 {
-#if defined( __i386__ )
-	// IEEE float bit manipulation works for values between [0, 1<<23)
-	union { float f; int i; } convert = { c*255.0f + (float)(1<<23) };
-	return convert.i & 255;
-#else
-	// consoles CPUs suffer from load-hit-store penalty
-	return Float2Int( c * 255.0f );
-#endif
+	#if defined( __i386__ )
+		// IEEE float bit manipulation works for values between [0, 1<<23)
+		union { float f; int i; } convert = { c*255.0f + (float)(1<<23) };
+		return convert.i & 255;
+	#else
+		// consoles CPUs suffer from load-hit-store penalty
+		return Float2Int( c * 255.0f );
+	#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -1342,14 +1305,14 @@ FORCEINLINE unsigned int FastFToC( float c )
 //-----------------------------------------------------------------------------
 FORCEINLINE int FastFloatToSmallInt( float c )
 {
-#if defined( __i386__ )
-	// IEEE float bit manipulation works for values between [-1<<22, 1<<22)
-	union { float f; int i; } convert = { c + (float)(3<<22) };
-	return (convert.i & ((1<<23)-1)) - (1<<22);
-#else
-	// consoles CPUs suffer from load-hit-store penalty
-	return Float2Int( c );
-#endif
+	#if defined( __i386__ )
+		// IEEE float bit manipulation works for values between [-1<<22, 1<<22)
+		union { float f; int i; } convert = { c + (float)(3<<22) };
+		return (convert.i & ((1<<23)-1)) - (1<<22);
+	#else
+		// consoles CPUs suffer from load-hit-store penalty
+		return Float2Int( c );
+	#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -1444,9 +1407,6 @@ extern float LinearToGamma( float linear );
 
 extern float SrgbGammaToLinear( float flSrgbGammaValue );
 extern float SrgbLinearToGamma( float flLinearValue );
-extern float X360GammaToLinear( float fl360GammaValue );
-extern float X360LinearToGamma( float flLinearValue );
-extern float SrgbGammaTo360Gamma( float flSrgbGammaValue );
 
 // linear (0..4) to screen corrected vertex space (0..1?)
 FORCEINLINE float LinearToVertexLight( float f )

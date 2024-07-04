@@ -18,46 +18,28 @@
 // NOTE: This must be the last file included!!!
 //#include "tier0/memdbgon.h"
 
-#ifdef _X360
-// mandatory ... wary of above comment and isolating, tier0 is built as MT though
-#include "tier0/memdbgon.h"
-#endif
-
 #if _WIN32
-#define FAST_BIT_SCAN 1
-#if _X360
-#define CountLeadingZeros(x) _CountLeadingZeros(x)
-inline unsigned int CountTrailingZeros( unsigned int elem )
-{
-	// this implements CountTrailingZeros() / BitScanForward()
-	unsigned int mask = elem-1;
-	unsigned int comp = ~elem;
-	elem = mask & comp;
-	return (32 - _CountLeadingZeros(elem));
-}
-#else
-#include <intrin.h>
-#pragma intrinsic(_BitScanReverse)
-#pragma intrinsic(_BitScanForward)
+	#define FAST_BIT_SCAN 1
+	#include <intrin.h>
+	#pragma intrinsic(_BitScanReverse)
+	#pragma intrinsic(_BitScanForward)
 
-inline unsigned int CountLeadingZeros(unsigned int x)
-{
-	unsigned long firstBit;
-	if ( _BitScanReverse(&firstBit,x) )
-		return 31 - firstBit;
-	return 32;
-}
-inline unsigned int CountTrailingZeros(unsigned int elem)
-{
-	unsigned long out;
-	if ( _BitScanForward(&out, elem) )
-		return out;
-	return 32;
-}
-
-#endif
+	inline unsigned int CountLeadingZeros(unsigned int x)
+	{
+		unsigned long firstBit;
+		if ( _BitScanReverse(&firstBit,x) )
+			return 31 - firstBit;
+		return 32;
+	}
+	inline unsigned int CountTrailingZeros(unsigned int elem)
+	{
+		unsigned long out;
+		if ( _BitScanForward(&out, elem) )
+			return out;
+		return 32;
+	}
 #else
-#define FAST_BIT_SCAN 0
+	#define FAST_BIT_SCAN 0
 #endif
 
 
@@ -470,7 +452,7 @@ bool bf_write::WriteBits(const void *pInData, int nBits)
 		nBitsLeft -= 8;
 	}
 	
-	if ( IsPC() && (nBitsLeft >= 32) && (m_iCurBit & 7) == 0 )
+	if ( ( nBitsLeft >= 32 ) && ( m_iCurBit & 7 ) == 0 )
 	{
 		// current bit is byte aligned, do block copy
 		int numbytes = nBitsLeft >> 3; 
@@ -482,8 +464,7 @@ bool bf_write::WriteBits(const void *pInData, int nBits)
 		m_iCurBit += numbits;
 	}
 
-	// X360TBD: Can't write dwords in WriteBits because they'll get swapped
-	if ( IsPC() && nBitsLeft >= 32 )
+	if ( nBitsLeft >= 32 )
 	{
 		unsigned long iBitsRight = (m_iCurBit & 31);
 		unsigned long iBitsLeft = 32 - iBitsRight;
@@ -892,16 +873,12 @@ void bf_read::ReadBits(void *pOutData, int nBits)
 		nBitsLeft -= 8;
 	}
 
-	// X360TBD: Can't read dwords in ReadBits because they'll get swapped
-	if ( IsPC() )
+	// read dwords
+	while ( nBitsLeft >= 32 )
 	{
-		// read dwords
-		while ( nBitsLeft >= 32 )
-		{
-			*((unsigned long*)pOut) = ReadUBitLong(32);
-			pOut += sizeof(unsigned long);
-			nBitsLeft -= 32;
-		}
+		*((unsigned long*)pOut) = ReadUBitLong(32);
+		pOut += sizeof(unsigned long);
+		nBitsLeft -= 32;
 	}
 
 	// read remaining bytes

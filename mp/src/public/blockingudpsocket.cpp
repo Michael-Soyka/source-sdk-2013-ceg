@@ -4,16 +4,16 @@
 //
 //=============================================================================//
 
-#if defined(_WIN32) && !defined(_X360)
-#include <winsock.h>
+#if defined(_WIN32)
+	#include <winsock.h>
 #elif POSIX
-#define INVALID_SOCKET -1
-#define SOCKET_ERROR -1
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#define closesocket close
+	#define INVALID_SOCKET -1
+	#define SOCKET_ERROR -1
+	#include <sys/types.h>
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include <unistd.h>
+	#define closesocket close
 #endif
 
 #include "blockingudpsocket.h"

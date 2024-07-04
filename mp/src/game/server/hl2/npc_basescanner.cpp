@@ -85,12 +85,6 @@ CNPC_BaseScanner::CNPC_BaseScanner()
 //-----------------------------------------------------------------------------
 void CNPC_BaseScanner::Spawn(void)
 {
-#ifdef _XBOX
-	// Always fade the corpse
-	AddSpawnFlags( SF_NPC_FADE_CORPSE );
-	AddEffects( EF_NOSHADOW );
-#endif // _XBOX
-
 	SetHullType( HULL_TINY_CENTERED );
 	SetHullSizeNormal();
 
@@ -159,10 +153,11 @@ void CNPC_BaseScanner::UpdateEfficiency( bool bInPVS )
 //-----------------------------------------------------------------------------
 float CNPC_BaseScanner::GetAutoAimRadius()
 { 
-	if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
-	{
-		return 24.0f;
-	}
+	//TODO: Adapt console auto-aim for PC
+	//if( g_pGameRules->GetAutoAimMode() == AUTOAIM_ON_CONSOLE )
+	//{
+	//	return 24.0f;
+	//}
 
 	return 12.0f;
 }
