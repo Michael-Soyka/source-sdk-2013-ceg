@@ -11,10 +11,8 @@
 
 # Source SDK 2013 Community Edition Gamma
 
-# Info
-
-Watch the activity in the Projects tab or [here](https://github.com/users/Michael-Soyka/projects/6)\
-*Fuck you [Atlassian](https://www.atlassian.com/ru/software/trello), go cry about Ukraine!*
+# Short info
+This fork main idea was to remove some junky `PS3`, `XBOX` code from the **Source SDK 2013 Community Edition Gamma**.
 
 # Requirements 
 To be able to use Source 2013 CE you will need to download **Visual Studio 2022** and install:
