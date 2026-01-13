@@ -10,8 +10,6 @@
 </div>
 
 # Source SDK 2013 Community Edition Gamma
-
-# Short info
 This fork main idea was to remove some junky `PS3`, `XBOX` code from the **Source SDK 2013 Community Edition Gamma**.
 
 # Requirements 
